@@ -3068,3 +3068,48 @@ bottomProfileMenuBtn?.addEventListener("click", () => {
   setBottomMenuActive(bottomProfileMenuBtn);
   accountBtn?.click();
 });
+
+
+/* Reliable bottom navigation: event delegation */
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-bottom-action]");
+  if (!button) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const action = button.dataset.bottomAction;
+
+  document.querySelectorAll(".bottom-nav-item").forEach(item => item.classList.remove("active"));
+  if (button.classList.contains("bottom-nav-item")) button.classList.add("active");
+
+  if (action === "home") {
+    running = false;
+    show(menu);
+    return;
+  }
+
+  if (action === "skins") {
+    openSkinsPanel();
+    return;
+  }
+
+  if (action === "play") {
+    startGame();
+    return;
+  }
+
+  if (action === "multi") {
+    multiplayerEntry.classList.toggle("hidden", multiplayer.inRoom);
+    multiplayerLobby.classList.toggle("hidden", !multiplayer.inRoom);
+    if (multiplayer.inRoom) renderMultiplayerLobby();
+    show(multiplayerModal);
+    return;
+  }
+
+  if (action === "profile") {
+    accountPseudo.value = profile.name || "Player";
+    updateMenuStats();
+    show(accountModal);
+  }
+}, true);
