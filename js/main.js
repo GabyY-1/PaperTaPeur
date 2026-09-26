@@ -2115,12 +2115,13 @@ function openRewardsPanel() {
 function openRankPanel() {
   const currentRank = window.PTPProfile.getRank(profile.rankPoints);
 
-  const ranks = window.PTPProfile.RANKS.map((rank) => {
+  const ranks = window.PTPProfile.RANKS.map((rank, index) => {
     const current = rank.name === currentRank.name;
+    const roman = ["I","II","III","IV","V","VI","VII"][index] || "I";
 
     return `
       <div class="rank-item" ${current ? 'style="outline:3px solid #668cff"' : ""}>
-        <div class="rank-dot" style="background:${rank.color}">${rank.name.charAt(0)}</div>
+        <div class="rank-dot" style="background:${rank.color}">${roman}</div>
         <strong>${rank.name}</strong>
         <span>${rank.min} RP</span>
       </div>
