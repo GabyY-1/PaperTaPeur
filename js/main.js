@@ -2953,3 +2953,24 @@ if (leaveRoomBtn) {
     await leaveMultiplayerRoom(true);
   };
 }
+
+
+function shouldAutoStartMobileGame() {
+  const params = new URLSearchParams(location.search);
+  if (params.get("open") === "multiplayer") return false;
+
+  const narrowScreen = window.matchMedia("(max-width: 720px)").matches;
+  const touchDevice = window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+
+  return narrowScreen && touchDevice;
+}
+
+if (shouldAutoStartMobileGame()) {
+  window.addEventListener("load", () => {
+    setTimeout(() => {
+      if (!running && !multiplayer.inRoom) {
+        startGame();
+      }
+    }, 120);
+  });
+}
