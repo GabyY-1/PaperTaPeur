@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="./css/style.css?v=20260926-readable3">
+  <link rel="stylesheet" href="./css/style.css?v=20260926-leaderboards1">
 </head>
 <body>
 <main id="app">
@@ -205,6 +205,7 @@
             <li class="empty">Aucun score enregistré pour cette carte.</li>
           </ol>
           <p id="leaderboardLoginHint">Connecte-toi pour apparaître dans ce classement.</p>
+          <button id="openLeaderboardPageBtn" class="leaderboard-open-full">VOIR TOUS LES CLASSEMENTS</button>
         </div>
       </section>
     </div>
@@ -218,6 +219,9 @@
       </button>
       <button class="bottom-nav-play" type="button" data-bottom-action="play">
         <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="leaderboard">
+        <span class="bottom-nav-icon leaderboard-icon"></span><strong>CLASSEMENT</strong>
       </button>
       <button class="bottom-nav-item" type="button" data-bottom-action="multi">
         <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
@@ -243,6 +247,73 @@
     </div>
   </section>
 
+
+
+  <section id="leaderboardPage" class="screen hub-page leaderboard-page">
+    <div class="hub-bg"></div>
+    <header class="hub-header leaderboard-hub-header">
+      <div>
+        <small>COMPÉTITIF</small>
+        <h1>Classements</h1>
+        <p>Compare les joueurs par RP, territoire, kills, niveau, parties et records sur chaque carte.</p>
+      </div>
+      <div class="leaderboard-trophy">★</div>
+    </header>
+
+    <div class="hub-content leaderboard-page-content">
+      <div class="leaderboard-tabs" id="leaderboardTabs">
+        <button class="active" data-board-scope="global" data-board-metric="rank_points">RP</button>
+        <button data-board-scope="global" data-board-metric="best_territory">TERRITOIRE</button>
+        <button data-board-scope="global" data-board-metric="total_kills">KILLS</button>
+        <button data-board-scope="global" data-board-metric="level">NIVEAU</button>
+        <button data-board-scope="global" data-board-metric="games">PARTIES</button>
+      </div>
+
+      <div class="leaderboard-map-tabs" id="leaderboardMapTabs">
+        <span>PAR CARTE</span>
+        <button data-board-scope="map" data-map="arena" data-board-metric="best_territory">ARÈNE · TERRITOIRE</button>
+        <button data-board-scope="map" data-map="arena" data-board-metric="best_kills">ARÈNE · KILLS</button>
+        <button data-board-scope="map" data-map="compact" data-board-metric="best_territory">COMPACT · TERRITOIRE</button>
+        <button data-board-scope="map" data-map="compact" data-board-metric="best_kills">COMPACT · KILLS</button>
+        <button data-board-scope="map" data-map="titan" data-board-metric="best_territory">TITAN · TERRITOIRE</button>
+        <button data-board-scope="map" data-map="titan" data-board-metric="best_kills">TITAN · KILLS</button>
+      </div>
+
+      <div class="leaderboard-main-card">
+        <div class="leaderboard-page-head">
+          <div>
+            <small id="leaderboardPageKicker">GLOBAL</small>
+            <strong id="leaderboardPageTitle">Classement RP</strong>
+          </div>
+          <span id="leaderboardPageState">CHARGEMENT…</span>
+        </div>
+        <div id="leaderboardPageList" class="leaderboard-page-list">
+          <div class="leaderboard-loading">Chargement du classement…</div>
+        </div>
+      </div>
+    </div>
+
+        <nav class="game-bottom-nav" aria-label="Menu principal">
+      <button class="bottom-nav-item active" type="button" data-bottom-action="home">
+        <span class="bottom-nav-icon home-icon"></span><strong>ACCUEIL</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="skins">
+        <span class="bottom-nav-icon skin-icon"></span><strong>SKINS</strong>
+      </button>
+      <button class="bottom-nav-play" type="button" data-bottom-action="play">
+        <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item active" type="button" data-bottom-action="leaderboard">
+        <span class="bottom-nav-icon leaderboard-icon"></span><strong>CLASSEMENT</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="multi">
+        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="profile">
+        <span class="bottom-nav-icon profile-icon"></span><strong>PROFIL</strong>
+      </button>
+    </nav>
+  </section>
 
   <section id="skinsPage" class="screen hub-page">
     <div class="hub-bg"></div>
@@ -270,6 +341,9 @@
       </button>
       <button class="bottom-nav-play" type="button" data-bottom-action="play">
         <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="leaderboard">
+        <span class="bottom-nav-icon leaderboard-icon"></span><strong>CLASSEMENT</strong>
       </button>
       <button class="bottom-nav-item" type="button" data-bottom-action="multi">
         <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
@@ -402,6 +476,9 @@
       </button>
       <button class="bottom-nav-play" type="button" data-bottom-action="play">
         <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="leaderboard">
+        <span class="bottom-nav-icon leaderboard-icon"></span><strong>CLASSEMENT</strong>
       </button>
       <button class="bottom-nav-item" type="button" data-bottom-action="multi">
         <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
@@ -621,7 +698,7 @@
 </main>
 
 <script src="js/profile.js?v=20260926-subranks1"></script>
-<script src="js/main.js?v=20260926-hubpages2"></script>
+<script src="js/main.js?v=20260926-leaderboards1"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
@@ -629,7 +706,7 @@
   supabaseScript.async = true;
   supabaseScript.onload = () => {
     const cloudScript = document.createElement("script");
-    cloudScript.src = "js/cloud.js?v=20260926-mobilefix1";
+    cloudScript.src = "js/cloud.js?v=20260926-leaderboards1";
     cloudScript.onload = () => window.dispatchEvent(new Event("PTPCloudReady"));
     document.body.appendChild(cloudScript);
   };
