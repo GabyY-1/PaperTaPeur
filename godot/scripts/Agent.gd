@@ -3,24 +3,24 @@ extends Node2D
 signal captured(agent, gained)
 signal eliminated(agent, killer_id)
 
-var territory_map: Node2D
-var owner_id := -1
-var display_name := "Agent"
-var agent_color := Color.WHITE
-var world_radius := 1100.0
-var speed := 245.0
+var territory_map = null
+var owner_id = -1
+var display_name = "Agent"
+var agent_color = Color.WHITE
+var world_radius = 1100.0
+var speed = 245.0
 
-var direction := Vector2.RIGHT
-var target_direction := Vector2.RIGHT
-var trail: PackedVector2Array = PackedVector2Array()
-var outside := false
-var alive := true
+var direction = Vector2.RIGHT
+var target_direction = Vector2.RIGHT
+var trail = PackedVector2Array()
+var outside = false
+var alive = true
 
-const TRAIL_POINT_DISTANCE := 9.0
-const TRAIL_WIDTH := 15.0
+const TRAIL_POINT_DISTANCE = 9.0
+const TRAIL_WIDTH = 15.0
 
-func setup(map: Node2D, id: int, color: Color, start: Vector2, label_name: String) -> void:
-	territory_map = map
+func setup(map_node, id, color, start, label_name):
+	territory_map = map_node
 	owner_id = id
 	agent_color = color
 	position = start
@@ -29,7 +29,7 @@ func setup(map: Node2D, id: int, color: Color, start: Vector2, label_name: Strin
 	territory_map.create_start_area(owner_id, position)
 	queue_redraw()
 
-func _physics_process(delta: float) -> void:
+func _physics_process(delta):
 	if not alive or territory_map == null:
 		return
 
@@ -48,11 +48,11 @@ func _physics_process(delta: float) -> void:
 	_update_territory_state()
 	queue_redraw()
 
-func _update_target_direction(_delta: float) -> void:
+func _update_target_direction(_delta):
 	pass
 
-func _update_territory_state() -> void:
-	var inside := territory_map.get_owner_world(position) == owner_id
+func _update_territory_state():
+	var inside = territory_map.get_owner_world(position) == owner_id
 
 	if not inside:
 		if not outside:
@@ -60,7 +60,7 @@ func _update_territory_state() -> void:
 			trail.clear()
 			trail.append(position)
 
-		if trail.is_empty() or trail[-1].distance_to(position) >= TRAIL_POINT_DISTANCE:
+		if trail.is_empty() or trail[trail.size() - 1].distance_to(position) >= TRAIL_POINT_DISTANCE:
 			trail.append(position)
 
 		if _hits_own_trail():
@@ -68,12 +68,12 @@ func _update_territory_state() -> void:
 	else:
 		if outside:
 			if trail.size() >= 3:
-				var gained := territory_map.capture(owner_id, trail)
+				var gained = territory_map.capture(owner_id, trail)
 				captured.emit(self, gained)
 			trail.clear()
 			outside = false
 
-func _hits_own_trail() -> bool:
+func _hits_own_trail():
 	if trail.size() < 10:
 		return false
 
@@ -82,7 +82,7 @@ func _hits_own_trail() -> bool:
 			return true
 	return false
 
-func hits_trail(point: Vector2) -> bool:
+func hits_trail(point):
 	if not alive or trail.size() < 2:
 		return false
 
@@ -91,15 +91,15 @@ func hits_trail(point: Vector2) -> bool:
 			return true
 	return false
 
-func _distance_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
-	var ab := b - a
-	var denom := ab.length_squared()
+func _distance_to_segment(p, a, b):
+	var ab = b - a
+	var denom = ab.length_squared()
 	if denom <= 0.0001:
 		return p.distance_to(a)
-	var t := clamp((p - a).dot(ab) / denom, 0.0, 1.0)
+	var t = clamp((p - a).dot(ab) / denom, 0.0, 1.0)
 	return p.distance_to(a + ab * t)
 
-func die(killer_id: int) -> void:
+func die(killer_id):
 	if not alive:
 		return
 	alive = false
@@ -108,7 +108,7 @@ func die(killer_id: int) -> void:
 	eliminated.emit(self, killer_id)
 	visible = false
 
-func respawn(start: Vector2) -> void:
+func respawn(start):
 	position = start
 	direction = Vector2.from_angle(randf() * TAU)
 	target_direction = direction
@@ -119,7 +119,7 @@ func respawn(start: Vector2) -> void:
 	territory_map.create_start_area(owner_id, position)
 	queue_redraw()
 
-func _draw() -> void:
+func _draw():
 	if not alive:
 		return
 
