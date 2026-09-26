@@ -89,7 +89,7 @@ const WORLD_RADIUS = 1500;
 const CELL = 22;
 const GRID = Math.ceil((WORLD_RADIUS * 2) / CELL);
 const PLAYER_SPEED = 206;
-const BOT_COUNT = 9;
+const BOT_COUNT = 7;
 const START_RADIUS = 112;
 
 const COLORS = [
@@ -459,15 +459,61 @@ function rebuildTerritoryCounts() {
   playerPercent = ((territoryCounts[0] || 0) / playableCells) * 100;
 }
 
+function isSpawnAreaFree(x, y, radius = 120) {
+  const center = worldToGrid(x, y);
+  const cells = Math.ceil(radius / CELL);
+
+  for (let gy = center.gy - cells; gy <= center.gy + cells; gy++) {
+    for (let gx = center.gx - cells; gx <= center.gx + cells; gx++) {
+      const index = gridIndex(gx, gy);
+      if (index < 0 || !playableMask[index]) return false;
+
+      const p = gridToWorld(gx, gy);
+      if (Math.hypot(p.x - x, p.y - y) > radius) continue;
+
+      if (ownerGrid[index] !== -1) return false;
+    }
+  }
+
+  for (const entity of entities) {
+    if (!entity.alive) continue;
+    if (Math.hypot(entity.x - x, entity.y - y) < radius * 2.25) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function findSpawn(index) {
   if (index === 0) return { x: 0, y: 0 };
 
-  const angle = (index / BOT_COUNT) * TAU + Math.random() * 0.26;
-  const radius = 660 + Math.random() * 560;
+  for (let attempt = 0; attempt < 160; attempt++) {
+    const baseAngle = (index / BOT_COUNT) * TAU;
+    const angle = baseAngle + (Math.random() - 0.5) * 0.9;
+    const radius = 540 + Math.random() * 760;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+
+    if (isSpawnAreaFree(x, y, 125)) {
+      return { x, y };
+    }
+  }
+
+  for (let attempt = 0; attempt < 220; attempt++) {
+    const angle = Math.random() * TAU;
+    const radius = 450 + Math.random() * 830;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+
+    if (ownerAt(x, y) !== player.id && isSpawnAreaFree(x, y, 100)) {
+      return { x, y };
+    }
+  }
 
   return {
-    x: Math.cos(angle) * radius,
-    y: Math.sin(angle) * radius
+    x: Math.cos((index / BOT_COUNT) * TAU) * 1180,
+    y: Math.sin((index / BOT_COUNT) * TAU) * 1180
   };
 }
 
@@ -1036,11 +1082,10 @@ function clearTerritory(id) {
 }
 
 function respawnBot(bot) {
-  const a = Math.random() * TAU;
-  const r = 560 + Math.random() * 720;
+  const spawn = findSpawn(bot.id);
 
-  bot.x = Math.cos(a) * r;
-  bot.y = Math.sin(a) * r;
+  bot.x = spawn.x;
+  bot.y = spawn.y;
   bot.angle = Math.random() * TAU;
   bot.dirX = Math.cos(bot.angle);
   bot.dirY = Math.sin(bot.angle);
