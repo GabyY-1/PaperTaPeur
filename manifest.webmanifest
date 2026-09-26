@@ -1,0 +1,9 @@
+{
+  "name": "PaperTaPeur",
+  "short_name": "PaperTaPeur",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#87d7ff",
+  "theme_color": "#87d7ff",
+  "orientation": "any"
+}
