@@ -727,6 +727,19 @@ function update(dt) {
     }
   }
 
+  for (const entity of entities) {
+    if (!entity.alive) continue;
+
+    const percent = playableCells > 0
+      ? ((territoryCounts[entity.id] || 0) / playableCells) * 100
+      : 0;
+
+    if (percent >= 99.95) {
+      endGame();
+      return;
+    }
+  }
+
   leaderboardTimer -= dt;
   updateHud(leaderboardTimer <= 0);
 
@@ -1714,6 +1727,11 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 canvas.addEventListener("pointermove", (event) => {
+  if (event.pointerType === "mouse") {
+    steerPointer(event);
+    return;
+  }
+
   if (pointerActive && event.pointerId === pointerId) {
     steerPointer(event);
   }
