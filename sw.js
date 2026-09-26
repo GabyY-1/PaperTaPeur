@@ -1,4 +1,4 @@
-const CACHE = "papertapeur-v2-mobilefix";
+const CACHE = "papertapeur-v3";
 const CORE = [
   "./",
   "./index.html",
