@@ -1,9 +1,42 @@
 {
   "name": "PaperTaPeur",
   "short_name": "PaperTaPeur",
+  "description": "Jeu compétitif de conquête de territoire, jouable seul ou jusqu'à 8 joueurs.",
+  "id": "./",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#87d7ff",
-  "theme_color": "#87d7ff",
-  "orientation": "any"
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#eaf8ff",
+  "theme_color": "#eaf8ff",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
+  "lang": "fr-FR",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Jouer",
+      "short_name": "Jouer",
+      "url": "./"
+    },
+    {
+      "name": "Multijoueur",
+      "short_name": "Multi",
+      "url": "./?open=multiplayer"
+    }
+  ]
 }
