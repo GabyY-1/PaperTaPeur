@@ -99,6 +99,27 @@ const signOutBtn = document.getElementById("signOutBtn");
 const cloudStatus = document.getElementById("cloudStatus");
 const cloudDot = document.getElementById("cloudDot");
 const authMessage = document.getElementById("authMessage");
+const multiplayerModal = document.getElementById("multiplayerModal");
+const openMultiplayerBtn = document.getElementById("openMultiplayerBtn");
+const closeMultiplayerBtn = document.getElementById("closeMultiplayerBtn");
+const multiplayerEntry = document.getElementById("multiplayerEntry");
+const multiplayerLobby = document.getElementById("multiplayerLobby");
+const createRoomBtn = document.getElementById("createRoomBtn");
+const roomCodeInput = document.getElementById("roomCodeInput");
+const joinRoomBtn = document.getElementById("joinRoomBtn");
+const multiplayerMessage = document.getElementById("multiplayerMessage");
+const roomCodeDisplay = document.getElementById("roomCodeDisplay");
+const copyRoomCodeBtn = document.getElementById("copyRoomCodeBtn");
+const lobbyModeName = document.getElementById("lobbyModeName");
+const lobbyMapName = document.getElementById("lobbyMapName");
+const lobbyPlayerCount = document.getElementById("lobbyPlayerCount");
+const lobbyPlayers = document.getElementById("lobbyPlayers");
+const hostBadge = document.getElementById("hostBadge");
+const hostLobbyControls = document.getElementById("hostLobbyControls");
+const guestLobbyWaiting = document.getElementById("guestLobbyWaiting");
+const syncLobbySettingsBtn = document.getElementById("syncLobbySettingsBtn");
+const startLobbyGameBtn = document.getElementById("startLobbyGameBtn");
+const leaveRoomBtn = document.getElementById("leaveRoomBtn");
 
 const TAU = Math.PI * 2;
 
@@ -117,7 +138,8 @@ const COLORS = [
   "#a96cff",
   "#ff914d",
   "#35d6cc",
-  "#f36fc8"
+  "#f36fc8",
+  "#355c7d"
 ];
 
 const BOT_NAMES = [
@@ -252,7 +274,7 @@ addEventListener("resize", resize);
 resize();
 
 function show(screenEl) {
-  [menu, game, gameover, accountModal, infoModal, panelModal].forEach((s) => s.classList.remove("active"));
+  [menu, game, gameover, accountModal, infoModal, panelModal, multiplayerModal].forEach((s) => s && s.classList.remove("active"));
   screenEl.classList.add("active");
 }
 
@@ -512,6 +534,8 @@ function makeEntity(id, name, color, x, y, isBot) {
       ? 158 + botDifficulty * 48 + Math.random() * (16 - botDifficulty * 6)
       : PLAYER_SPEED,
     isBot,
+    isRemote: false,
+    clientId: null,
     alive: true,
     outside: false,
     trail: [],
@@ -554,7 +578,7 @@ function rebuildTerritoryCounts() {
     }
   }
 
-  playerPercent = ((territoryCounts[0] || 0) / playableCells) * 100;
+  playerPercent = ((territoryCounts[player ? player.id : 0] || 0) / playableCells) * 100;
 }
 
 function isSpawnAreaFree(x, y, radius = 120) {
@@ -728,6 +752,7 @@ function update(dt) {
 
     if (entity.invuln > 0) entity.invuln -= dt;
 
+    if (entity.isRemote) continue;
     if (entity.isBot) updateBot(entity, dt);
 
     moveEntity(entity, dt);
@@ -1413,7 +1438,7 @@ function updateHud(updateLeaderboard) {
     .map(
       (r) =>
         '<li class="' +
-        (r.id === 0 ? "me" : "") +
+        (player && r.id === player.id ? "me" : "") +
         '">' +
         escapeHtml(r.name) +
         " <b>" +
