@@ -135,3 +135,13 @@ button{cursor:pointer}
 @media(max-width:520px){
   .competitive-brand strong{font-size:23px}.account-button{padding-right:6px}.arena-card{min-height:340px}.competitive-paper{width:108px;height:96px}.ranked-play strong{font-size:19px}.stats-grid{grid-template-columns:1fr 1fr}.game-progress{width:72vw}#minimap{width:94px;height:94px}.mode-selector{grid-template-columns:1fr 1fr}.mode-option{padding:8px}.mode-hud{top:45px;font-size:8px}
 }
+
+
+.color-selector-block{width:min(330px,100%);margin-top:12px}
+.color-selector-block .selector-heading{margin-bottom:8px}
+.color-picker{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+.color-choice{aspect-ratio:1;border-radius:10px;border:3px solid #fff;box-shadow:0 0 0 1px #b9d4e8,0 4px 10px #6e9ec226;position:relative;transition:.15s transform,.15s box-shadow}
+.color-choice:hover{transform:translateY(-2px)}
+.color-choice.active{box-shadow:0 0 0 3px #2c8cff,0 5px 12px #6e9ec23d;transform:translateY(-2px)}
+.color-choice.active:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:1000;text-shadow:0 1px 3px #0008}
+@media(max-width:520px){.color-picker{grid-template-columns:repeat(4,1fr)}}
