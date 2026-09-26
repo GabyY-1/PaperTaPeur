@@ -978,10 +978,30 @@ function killEntity(victim, killer) {
   victim.alive = false;
   burst(victim.x, victim.y, victim.color, 34);
 
+  let stolenCells = 0;
+
+  if (killer && killer.alive && killer.id !== victim.id) {
+    stolenCells = transferTerritory(victim.id, killer.id);
+  } else {
+    clearTerritory(victim.id);
+  }
+
+  rebuildTerritoryCounts();
+
   if (killer && killer.alive && killer === player && victim !== player) {
     kills++;
     currentEarned += 3;
-    toast("Élimination +3 pièces");
+
+    const stolenPercent = playableCells > 0
+      ? (stolenCells / playableCells) * 100
+      : 0;
+
+    toast(
+      stolenCells > 0
+        ? "Élimination ! +" + stolenPercent.toFixed(1) + "% de territoire"
+        : "Élimination +3 pièces"
+    );
+
     tone(250, 0.12, "square", 0.03);
   }
 
@@ -990,13 +1010,23 @@ function killEntity(victim, killer) {
     return;
   }
 
-  clearTerritory(victim.id);
   victim.trail = [];
   victim.trailCells.clear();
   victim.outside = false;
   victim.respawn = 1.2 + Math.random() * 1.7;
+}
 
-  rebuildTerritoryCounts();
+function transferTerritory(fromId, toId) {
+  let transferred = 0;
+
+  for (let i = 0; i < ownerGrid.length; i++) {
+    if (ownerGrid[i] === fromId) {
+      ownerGrid[i] = toId;
+      transferred++;
+    }
+  }
+
+  return transferred;
 }
 
 function clearTerritory(id) {
