@@ -66,6 +66,11 @@ const panelBody = document.getElementById("panelBody");
 const topLevel = document.getElementById("topLevel");
 const accountRankName = document.getElementById("accountRankName");
 const accountProfileName = document.getElementById("accountProfileName");
+const gemCount = document.getElementById("gemCount");
+const shopNavBtn = document.getElementById("shopNavBtn");
+const homeNavBtn = document.getElementById("homeNavBtn");
+const gameProgressFill = document.getElementById("gameProgressFill");
+const gameProgressLabel = document.getElementById("gameProgressLabel");
 const accountEmail = document.getElementById("accountEmail");
 const accountPassword = document.getElementById("accountPassword");
 const signInBtn = document.getElementById("signInBtn");
@@ -277,6 +282,7 @@ function updateMenuStats() {
   botDifficulty = window.PTPProfile.botDifficulty(profile.rankPoints);
 
   menuCoins.textContent = totalCoins;
+  if (gemCount) gemCount.textContent = Math.floor(profile.level / 3);
   bestScoreEl.textContent = bestScore.toFixed(1) + "%";
   if (bestScoreBar) bestScoreBar.style.width = Math.max(6, Math.min(100, bestScore)) + "%";
   bestKillsEl.textContent = bestKills;
@@ -1129,6 +1135,8 @@ function endGame() {
 
 function updateHud(updateLeaderboard) {
   territoryEl.textContent = playerPercent.toFixed(1) + "%";
+  if (gameProgressFill) gameProgressFill.style.width = Math.max(0, Math.min(100, playerPercent)) + "%";
+  if (gameProgressLabel) gameProgressLabel.textContent = Math.floor(playerPercent) + "%";
   killsEl.textContent = kills;
   coinsEl.textContent = totalCoins + currentEarned;
 
@@ -1968,4 +1976,23 @@ if (window.PTPCloud) {
 
   updateCloudUI();
   syncFromCloud();
+}
+
+
+if (shopNavBtn) {
+  shopNavBtn.onclick = () => {
+    openSkinsPanel();
+    panelTitle.textContent = "BOUTIQUE";
+  };
+}
+
+if (homeNavBtn) {
+  homeNavBtn.onclick = () => {
+    updateMenuStats();
+    show(menu);
+  };
+}
+
+if (previewPaper) {
+  previewPaper.onclick = () => openSkinsPanel();
 }
