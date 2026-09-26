@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-color1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-multiplayer1">
 </head>
 <body>
 <main id="app">
@@ -76,6 +76,23 @@
             <strong id="menuGames">0</strong>
           </div>
         </div>
+
+        <div class="skin-card-main">
+          <div class="card-heading">
+            <div><small>SKIN</small><strong>Couleur du joueur</strong></div>
+            <span>9 COULEURS</span>
+          </div>
+          <div id="colorPicker" class="color-picker"></div>
+        </div>
+
+        <div class="multiplayer-card-main">
+          <div class="card-heading">
+            <div><small>MULTIJOUEUR</small><strong>Salon privé</strong></div>
+            <span>2–8 JOUEURS</span>
+          </div>
+          <p>Crée un salon ou rejoins tes amis avec un code.</p>
+          <button id="openMultiplayerBtn" class="multiplayer-open-btn">OUVRIR LE MULTIJOUEUR</button>
+        </div>
       </section>
 
       <section class="center-column">
@@ -124,14 +141,6 @@
           <div class="nickname-wrap">
             <label for="playerName">PSEUDO</label>
             <input id="playerName" maxlength="14" value="Player" autocomplete="off">
-          </div>
-
-          <div class="color-selector-block">
-            <div class="selector-heading">
-              <small>COULEUR</small>
-              <strong>Ta couleur en partie</strong>
-            </div>
-            <div id="colorPicker" class="color-picker"></div>
           </div>
 
           <button id="playBtn" class="ranked-play">
@@ -188,6 +197,69 @@
       <button id="bottomWorldBtn"></button>
       <span id="menuCoins">0</span>
       <span id="gemCount">0</span>
+    </div>
+  </section>
+
+  <section id="multiplayerModal" class="screen overlay">
+    <div class="modal-card multiplayer-modal-card">
+      <div class="modal-head">
+        <div><small>MULTIJOUEUR PRIVÉ</small><h2>Salon PaperTaPeur</h2></div>
+        <button id="closeMultiplayerBtn" class="modal-x">×</button>
+      </div>
+
+      <div id="multiplayerEntry" class="multiplayer-entry">
+        <button id="createRoomBtn" class="multi-choice">
+          <strong>CRÉER UN SALON</strong>
+          <small>Génère un code à partager</small>
+        </button>
+
+        <div class="join-room-box">
+          <label for="roomCodeInput">CODE DU SALON</label>
+          <div>
+            <input id="roomCodeInput" maxlength="6" placeholder="ABC123" autocomplete="off">
+            <button id="joinRoomBtn">REJOINDRE</button>
+          </div>
+        </div>
+        <p id="multiplayerMessage"></p>
+      </div>
+
+      <div id="multiplayerLobby" class="multiplayer-lobby hidden">
+        <div class="room-banner">
+          <div>
+            <small>CODE DU SALON</small>
+            <strong id="roomCodeDisplay">------</strong>
+          </div>
+          <button id="copyRoomCodeBtn">COPIER</button>
+        </div>
+
+        <div class="lobby-settings-row">
+          <div><small>MODE</small><strong id="lobbyModeName">Classé</strong></div>
+          <div><small>CARTE</small><strong id="lobbyMapName">Arène</strong></div>
+          <div><small>JOUEURS</small><strong id="lobbyPlayerCount">1 / 8</strong></div>
+        </div>
+
+        <div class="lobby-title-row">
+          <div>
+            <small>ÉQUIPE</small>
+            <strong>Joueurs dans le salon</strong>
+          </div>
+          <span id="hostBadge">HÔTE</span>
+        </div>
+
+        <div id="lobbyPlayers" class="lobby-players"></div>
+
+        <div id="hostLobbyControls" class="host-lobby-controls">
+          <p>Le mode et la carte utilisent les sélections du menu principal.</p>
+          <button id="syncLobbySettingsBtn" class="modal-secondary">ACTUALISER MODE / CARTE</button>
+          <button id="startLobbyGameBtn" class="modal-primary big">LANCER LA PARTIE</button>
+        </div>
+
+        <div id="guestLobbyWaiting" class="guest-lobby-waiting hidden">
+          En attente du lancement par l’hôte…
+        </div>
+
+        <button id="leaveRoomBtn" class="leave-room-btn">QUITTER LE SALON</button>
+      </div>
     </div>
   </section>
 
@@ -321,6 +393,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/profile.js?v=20260926-competitive1"></script>
 <script src="js/cloud.js?v=20260926-maps-leaderboard3"></script>
-<script src="js/main.js?v=20260926-ranksroman2"></script>
+<script src="js/main.js?v=20260926-multiplayer1"></script>
 </body>
 </html>
