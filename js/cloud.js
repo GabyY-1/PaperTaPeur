@@ -168,14 +168,30 @@
     return true;
   }
 
-  async function getMapLeaderboard(mapId, limit = 10) {
+  async function getMapLeaderboard(mapId, limit = 10, metric = "best_territory") {
+    const allowed = ["best_territory","best_kills","games"];
+    const orderMetric = allowed.includes(metric) ? metric : "best_territory";
+
     const { data, error } = await client
       .from("map_records")
       .select("username,best_territory,best_kills,games,updated_at")
       .eq("map_id", mapId)
+      .order(orderMetric, { ascending: false })
       .order("best_territory", { ascending: false })
-      .order("best_kills", { ascending: false })
       .limit(limit);
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async function getGlobalLeaderboard(metric = "rank_points", limit = 50) {
+    const allowed = ["rank_points","level","games","total_kills","best_territory"];
+    const safeMetric = allowed.includes(metric) ? metric : "rank_points";
+
+    const { data, error } = await client.rpc("get_global_leaderboard", {
+      metric: safeMetric,
+      limit_count: Math.max(1, Math.min(Number(limit) || 50, 100))
+    });
 
     if (error) throw error;
     return data || [];
@@ -197,6 +213,7 @@
     saveMatch,
     saveMapRecord,
     getMapLeaderboard,
+    getGlobalLeaderboard,
     onAuthChange
   };
 })();
