@@ -37,6 +37,7 @@ const killsEl = document.getElementById("kills");
 const coinsEl = document.getElementById("coins");
 const menuCoins = document.getElementById("menuCoins");
 const bestScoreEl = document.getElementById("bestScore");
+const bestScoreBar = document.getElementById("bestScoreBar");
 const bestKillsEl = document.getElementById("bestKills");
 const finalScoreEl = document.getElementById("finalScore");
 const finalKillsEl = document.getElementById("finalKills");
@@ -277,6 +278,7 @@ function updateMenuStats() {
 
   menuCoins.textContent = totalCoins;
   bestScoreEl.textContent = bestScore.toFixed(1) + "%";
+  if (bestScoreBar) bestScoreBar.style.width = Math.max(6, Math.min(100, bestScore)) + "%";
   bestKillsEl.textContent = bestKills;
   soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
 
