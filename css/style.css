@@ -1756,3 +1756,34 @@ button{cursor:pointer}
   .leaderboard-full-row{min-height:44px;padding:5px 9px}
   .leaderboard-page-head strong{font-size:18px}
 }
+
+
+/* General player ranking */
+.leaderboard-full-row.general-row{
+  min-height:78px;
+}
+.leaderboard-general-stats{
+  display:flex;
+  gap:14px;
+  margin-top:7px;
+  flex-wrap:wrap;
+}
+.leaderboard-general-stats span{
+  display:flex;
+  align-items:baseline;
+  gap:4px;
+}
+.leaderboard-general-stats b{
+  font-size:9px;
+  color:#355f82;
+}
+.leaderboard-general-stats small{
+  font-size:6px;
+  color:#8aa0b2;
+  font-weight:1000;
+  letter-spacing:.06em;
+}
+@media(max-height:780px) and (min-width:901px){
+  .leaderboard-full-row.general-row{min-height:64px}
+  .leaderboard-general-stats{gap:9px;margin-top:4px}
+}
