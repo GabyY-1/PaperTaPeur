@@ -2,59 +2,53 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#151a24">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#87d7ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <main id="app">
     <section id="menu" class="screen active">
-      <div class="menu-bg"></div>
+      <div class="sky"></div>
+      <div class="menu-cloud cloud-a"></div>
+      <div class="menu-cloud cloud-b"></div>
 
-      <header class="topbar">
-        <div class="coin-box">🪙 <strong id="menuCoins">0</strong></div>
-        <div class="version">WEB ALPHA · V0.2</div>
+      <header class="menu-top">
+        <button id="soundBtn" class="round-btn" aria-label="Son">🔊</button>
+        <div class="currency"><span class="coin-icon">●</span><strong id="menuCoins">0</strong></div>
+        <button id="settingsBtn" class="round-btn" aria-label="Réinitialiser les données">⚙</button>
       </header>
 
-      <div class="menu-layout">
-        <div class="brand">
-          <div class="logo-mark">
-            <span class="logo-eye"></span>
-            <span class="logo-eye second"></span>
-          </div>
-          <div>
-            <h1>PaperTaPeur</h1>
-            <p>Conquiers le plus grand territoire.</p>
-          </div>
+      <div class="menu-center">
+        <div class="title-wrap">
+          <div class="title-crown">▲</div>
+          <h1>PaperTaPeur</h1>
+          <p>Conquiers la carte. Coupe les traces. Reste en vie.</p>
         </div>
 
-        <div class="menu-card">
-          <label for="playerName">PSEUDO</label>
-          <input id="playerName" maxlength="16" value="Player" autocomplete="off">
-
-          <div class="color-title">COULEUR</div>
-          <div id="colorPicker" class="color-picker" aria-label="Choisir une couleur"></div>
-
-          <button id="playBtn" class="play-button">JOUER</button>
-
-          <div class="stats-row">
-            <div>
-              <span>Record</span>
-              <strong id="bestScore">0.0%</strong>
-            </div>
-            <div>
-              <span>Meilleure série</span>
-              <strong id="bestKills">0</strong>
-            </div>
-          </div>
+        <div class="skin-preview">
+          <div id="previewPaper" class="preview-paper"><span></span><span></span></div>
+          <div class="preview-shadow"></div>
         </div>
 
-        <div class="controls-card">
-          <strong>COMMANDES</strong>
-          <span>PC : ZQSD / WASD / flèches</span>
-          <span>Mobile : glisse ton doigt vers la direction voulue</span>
+        <div class="name-row">
+          <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
         </div>
+
+        <button id="playBtn" class="play-button">JOUER</button>
+
+        <button id="skinsBtn" class="secondary-button">COULEUR</button>
+        <div id="colorPicker" class="color-picker hidden"></div>
+
+        <div class="menu-records">
+          <div><small>MEILLEUR TERRITOIRE</small><strong id="bestScore">0.0%</strong></div>
+          <div><small>MEILLEURES ÉLIMINATIONS</small><strong id="bestKills">0</strong></div>
+        </div>
+
+        <div class="howto">PC : ZQSD / WASD / flèches · Mobile : glisse ou maintiens ton doigt</div>
       </div>
     </section>
 
@@ -62,13 +56,12 @@
       <canvas id="gameCanvas"></canvas>
 
       <div id="hud">
-        <div class="pill player-pill">
-          <span class="dot" id="playerDot"></span>
+        <div class="score-card">
           <span id="hudName">Player</span>
+          <strong id="territory">0.0%</strong>
         </div>
-        <div class="pill">Territoire <strong id="territory">0.0%</strong></div>
-        <div class="pill">⚔ <strong id="kills">0</strong></div>
-        <div class="pill">🪙 <strong id="coins">0</strong></div>
+        <div class="hud-chip"><span class="coin-icon">●</span><strong id="coins">0</strong></div>
+        <div class="hud-chip">✦ <strong id="kills">0</strong></div>
       </div>
 
       <div id="leaderboard">
@@ -76,27 +69,23 @@
         <ol id="leaderboardList"></ol>
       </div>
 
-      <canvas id="minimap" width="150" height="150"></canvas>
-
+      <canvas id="minimap" width="160" height="160"></canvas>
       <div id="dangerText">TRACE EN DANGER</div>
       <div id="toast"></div>
-
       <button id="quitBtn" aria-label="Quitter">×</button>
     </section>
 
     <section id="gameover" class="screen overlay">
       <div class="gameover-card">
-        <div class="gameover-icon">☠</div>
-        <h2>Partie terminée</h2>
-
+        <div class="gameover-title">PARTIE TERMINÉE</div>
+        <div class="gameover-paper" id="gameoverPaper"><span></span><span></span></div>
         <div class="result-grid">
-          <div><span>Territoire</span><strong id="finalScore">0.0%</strong></div>
-          <div><span>Éliminations</span><strong id="finalKills">0</strong></div>
-          <div><span>Pièces gagnées</span><strong id="earnedCoins">0</strong></div>
+          <div><small>Territoire</small><strong id="finalScore">0.0%</strong></div>
+          <div><small>Éliminations</small><strong id="finalKills">0</strong></div>
+          <div><small>Pièces</small><strong id="earnedCoins">0</strong></div>
         </div>
-
         <button id="retryBtn" class="play-button">REJOUER</button>
-        <button id="menuBtn" class="secondary">MENU</button>
+        <button id="menuBtn" class="secondary-button">MENU</button>
       </div>
     </section>
   </main>
