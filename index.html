@@ -414,10 +414,23 @@
 
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/profile.js?v=20260926-competitive1"></script>
-<script src="js/cloud.js?v=20260926-maps-leaderboard3"></script>
-<script src="js/main.js?v=20260926-mobile-direct1"></script>
-<script src="js/pwa.js?v=20260926-pwa1"></script>
+<script src="js/profile.js?v=20260926-mobilefix1"></script>
+<script src="js/main.js?v=20260926-mobilefix1"></script>
+<script>
+(() => {
+  const supabaseScript = document.createElement("script");
+  supabaseScript.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+  supabaseScript.async = true;
+  supabaseScript.onload = () => {
+    const cloudScript = document.createElement("script");
+    cloudScript.src = "js/cloud.js?v=20260926-mobilefix1";
+    cloudScript.onload = () => window.dispatchEvent(new Event("PTPCloudReady"));
+    document.body.appendChild(cloudScript);
+  };
+  supabaseScript.onerror = () => console.warn("Cloud indisponible, jeu local actif.");
+  document.body.appendChild(supabaseScript);
+})();
+</script>
+<script src="js/pwa.js?v=20260926-mobilefix1"></script>
 </body>
 </html>
