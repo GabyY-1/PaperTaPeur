@@ -69,6 +69,9 @@ const accountProfileName = document.getElementById("accountProfileName");
 const gemCount = document.getElementById("gemCount");
 const shopNavBtn = document.getElementById("shopNavBtn");
 const homeNavBtn = document.getElementById("homeNavBtn");
+const bottomHeroesBtn = document.getElementById("bottomHeroesBtn");
+const bottomMissionsBtn = document.getElementById("bottomMissionsBtn");
+const bottomWorldBtn = document.getElementById("bottomWorldBtn");
 const gameProgressFill = document.getElementById("gameProgressFill");
 const gameProgressLabel = document.getElementById("gameProgressLabel");
 const accountEmail = document.getElementById("accountEmail");
@@ -1995,4 +1998,17 @@ if (homeNavBtn) {
 
 if (previewPaper) {
   previewPaper.onclick = () => openSkinsPanel();
+}
+
+
+if (bottomHeroesBtn) {
+  bottomHeroesBtn.onclick = () => openSkinsPanel();
+}
+
+if (bottomMissionsBtn) {
+  bottomMissionsBtn.onclick = () => openMissionsPanel();
+}
+
+if (bottomWorldBtn) {
+  bottomWorldBtn.onclick = () => openRankPanel();
 }
