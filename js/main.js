@@ -80,6 +80,17 @@ const playModeTitle = document.getElementById("playModeTitle");
 const playModeSubtitle = document.getElementById("playModeSubtitle");
 const modeHudName = document.getElementById("modeHudName");
 const modeHudDetail = document.getElementById("modeHudDetail");
+const menuGames = document.getElementById("menuGames");
+const mapSelector = document.getElementById("mapSelector");
+const mapName = document.getElementById("mapName");
+const mapCardTitle = document.getElementById("mapCardTitle");
+const mapCardDescription = document.getElementById("mapCardDescription");
+const mapSizeLabel = document.getElementById("mapSizeLabel");
+const mapObjectiveLabel = document.getElementById("mapObjectiveLabel");
+const leaderboardMapName = document.getElementById("leaderboardMapName");
+const leaderboardStatus = document.getElementById("leaderboardStatus");
+const realMapLeaderboard = document.getElementById("realMapLeaderboard");
+const leaderboardLoginHint = document.getElementById("leaderboardLoginHint");
 const accountEmail = document.getElementById("accountEmail");
 const accountPassword = document.getElementById("accountPassword");
 const signInBtn = document.getElementById("signInBtn");
@@ -91,9 +102,9 @@ const authMessage = document.getElementById("authMessage");
 
 const TAU = Math.PI * 2;
 
-const WORLD_RADIUS = 1500;
+let WORLD_RADIUS = 1500;
 const CELL = 22;
-const GRID = Math.ceil((WORLD_RADIUS * 2) / CELL);
+let GRID = Math.ceil((WORLD_RADIUS * 2) / CELL);
 const PLAYER_SPEED = 206;
 const BOT_COUNT = 7;
 const START_RADIUS = 112;
@@ -191,6 +202,36 @@ const GAME_MODES = {
 
 let selectedMode = localStorage.getItem("ptpMode") || "ranked";
 if (!GAME_MODES[selectedMode]) selectedMode = "ranked";
+
+const MAPS = {
+  arena: {
+    name: "Arène",
+    radius: 1500,
+    size: "Standard",
+    description: "Carte équilibrée pour les parties compétitives classiques.",
+    ground: "#eef4f5",
+    outside: "#c8e8ef"
+  },
+  compact: {
+    name: "Compact",
+    radius: 1150,
+    size: "Petite",
+    description: "Moins d'espace, plus de contacts et des éliminations plus rapides.",
+    ground: "#f1f4ec",
+    outside: "#d8e4c8"
+  },
+  titan: {
+    name: "Titan",
+    radius: 1850,
+    size: "Grande",
+    description: "Grande carte pour les longues boucles et le contrôle stratégique.",
+    ground: "#eef1f8",
+    outside: "#cbd7e8"
+  }
+};
+
+let selectedMap = localStorage.getItem("ptpMap") || "arena";
+if (!MAPS[selectedMap]) selectedMap = "arena";
 
 const audio = { ctx: null };
 
@@ -334,6 +375,7 @@ function updateMenuStats() {
   bestScoreEl.textContent = bestScore.toFixed(1) + "%";
   if (bestScoreBar) bestScoreBar.style.width = Math.max(6, Math.min(100, bestScore)) + "%";
   bestKillsEl.textContent = bestKills;
+  if (menuGames) menuGames.textContent = profile.games || 0;
   soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
 
   accountNameEl.textContent = profile.name || "Player";
@@ -388,6 +430,9 @@ function tone(freq = 440, duration = 0.05, type = "sine", gain = 0.025) {
 }
 
 function buildWorld() {
+  WORLD_RADIUS = MAPS[selectedMap].radius;
+  GRID = Math.ceil((WORLD_RADIUS * 2) / CELL);
+
   ownerGrid = new Int16Array(GRID * GRID);
   ownerGrid.fill(-1);
 
@@ -536,7 +581,7 @@ function findSpawn(index) {
   for (let attempt = 0; attempt < 160; attempt++) {
     const baseAngle = (index / BOT_COUNT) * TAU;
     const angle = baseAngle + (Math.random() - 0.5) * 0.9;
-    const radius = 540 + Math.random() * 760;
+    const radius = WORLD_RADIUS * (0.38 + Math.random() * 0.45);
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
 
@@ -547,7 +592,7 @@ function findSpawn(index) {
 
   for (let attempt = 0; attempt < 220; attempt++) {
     const angle = Math.random() * TAU;
-    const radius = 450 + Math.random() * 830;
+    const radius = WORLD_RADIUS * (0.32 + Math.random() * 0.5);
     const x = Math.cos(angle) * radius;
     const y = Math.sin(angle) * radius;
 
@@ -557,8 +602,8 @@ function findSpawn(index) {
   }
 
   return {
-    x: Math.cos((index / BOT_COUNT) * TAU) * 1180,
-    y: Math.sin((index / BOT_COUNT) * TAU) * 1180
+    x: Math.cos((index / BOT_COUNT) * TAU) * WORLD_RADIUS * 0.78,
+    y: Math.sin((index / BOT_COUNT) * TAU) * WORLD_RADIUS * 0.78
   };
 }
 
@@ -1307,8 +1352,16 @@ function endGame() {
       territory: playerPercent,
       kills,
       coinsEarned: earned,
-      rankDelta: rankResult.delta
+      rankDelta: rankResult.delta,
+      mapId: selectedMap
     }).catch(console.error);
+
+    window.PTPCloud.saveMapRecord({
+      mapId: selectedMap,
+      username: profile.name,
+      territory: playerPercent,
+      kills
+    }).then(() => loadMapLeaderboard()).catch(console.error);
   }
 
   setTimeout(() => show(gameover), 170);
@@ -1385,7 +1438,7 @@ function toScreen(x, y) {
 
 function draw() {
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#c8e8ef";
+  ctx.fillStyle = MAPS[selectedMap].outside;
   ctx.fillRect(0, 0, W, H);
 
   const center = toScreen(0, 0);
@@ -1395,7 +1448,7 @@ function draw() {
   ctx.arc(center.x, center.y, WORLD_RADIUS * camera.zoom, 0, TAU);
   ctx.clip();
 
-  ctx.fillStyle = "#eef4f5";
+  ctx.fillStyle = MAPS[selectedMap].ground;
   ctx.fillRect(
     center.x - WORLD_RADIUS * camera.zoom,
     center.y - WORLD_RADIUS * camera.zoom,
@@ -2239,3 +2292,95 @@ if (modeSelector) {
 }
 
 updateModeSelectionUI();
+
+
+function currentModeObjective() {
+  const mode = GAME_MODES[selectedMode];
+  if (mode.timeLimit) return "Score en " + Math.round(mode.timeLimit / 60) + " min";
+  if (mode.noRespawn) return "Dernier survivant";
+  if (mode.conquestTarget) return mode.conquestTarget + "% de territoire";
+  return "Contrôle maximal";
+}
+
+function updateMapSelectionUI() {
+  const map = MAPS[selectedMap];
+  if (!map) return;
+
+  if (mapName) mapName.textContent = map.name;
+  if (mapCardTitle) mapCardTitle.textContent = map.name;
+  if (mapCardDescription) mapCardDescription.textContent = map.description;
+  if (mapSizeLabel) mapSizeLabel.textContent = map.size;
+  if (mapObjectiveLabel) mapObjectiveLabel.textContent = currentModeObjective();
+  if (leaderboardMapName) leaderboardMapName.textContent = map.name;
+
+  if (mapSelector) {
+    mapSelector.querySelectorAll(".map-option").forEach((button) => {
+      button.classList.toggle("active", button.dataset.map === selectedMap);
+    });
+  }
+}
+
+function escapeLeaderboardText(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+async function loadMapLeaderboard() {
+  if (!realMapLeaderboard || !window.PTPCloud?.getMapLeaderboard) return;
+
+  leaderboardStatus.textContent = "Chargement…";
+
+  try {
+    const rows = await window.PTPCloud.getMapLeaderboard(selectedMap, 10);
+
+    if (!rows.length) {
+      realMapLeaderboard.innerHTML = '<li class="empty">Aucun score réel enregistré pour cette carte.</li>';
+    } else {
+      realMapLeaderboard.innerHTML = rows.map((row, index) => {
+        const territory = Number(row.best_territory || 0).toFixed(1);
+        const killsValue = Number(row.best_kills || 0);
+        return '<li><span class="place">#' + (index + 1) + '</span><strong>' +
+          escapeLeaderboardText(row.username) +
+          '</strong><span class="leader-score">' + territory + '%</span><small>' +
+          killsValue + ' kills · ' + Number(row.games || 0) + ' matchs</small></li>';
+      }).join("");
+    }
+
+    const current = await window.PTPCloud.session();
+    leaderboardLoginHint.textContent = current
+      ? "Tes meilleurs scores sont enregistrés automatiquement."
+      : "Connecte-toi pour apparaître dans ce classement.";
+
+    leaderboardStatus.textContent = "EN DIRECT";
+  } catch (error) {
+    console.error(error);
+    leaderboardStatus.textContent = "INDISPONIBLE";
+    realMapLeaderboard.innerHTML = '<li class="empty">Classement indisponible pour le moment.</li>';
+  }
+}
+
+if (mapSelector) {
+  mapSelector.addEventListener("click", (event) => {
+    const button = event.target.closest(".map-option");
+    if (!button || !MAPS[button.dataset.map]) return;
+
+    selectedMap = button.dataset.map;
+    localStorage.setItem("ptpMap", selectedMap);
+    updateMapSelectionUI();
+    loadMapLeaderboard();
+  });
+}
+
+if (modeSelector) {
+  modeSelector.addEventListener("click", () => {
+    requestAnimationFrame(updateMapSelectionUI);
+  });
+}
+
+updateMapSelectionUI();
+loadMapLeaderboard();
