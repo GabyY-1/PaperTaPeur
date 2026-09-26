@@ -1176,3 +1176,69 @@ button{cursor:pointer}
 @media(max-width:900px){
   .game-bottom-nav{display:none!important}
 }
+
+
+/* ===== BOTTOM NAV FIX + READABILITY ===== */
+@media (min-width:901px){
+  .game-bottom-nav{
+    pointer-events:auto!important;
+    z-index:999!important;
+    height:68px!important;
+    padding:6px!important;
+  }
+  .bottom-nav-item,.bottom-nav-play{
+    pointer-events:auto!important;
+    cursor:pointer!important;
+    position:relative!important;
+    z-index:1000!important;
+    height:54px!important;
+  }
+  .bottom-nav-item strong{
+    font-size:9px!important;
+    letter-spacing:.055em!important;
+  }
+  .bottom-nav-play{
+    font-size:13px!important;
+  }
+
+  .mode-option strong,.map-option strong{
+    font-size:10px!important;
+  }
+  .mode-option small,.map-option small{
+    font-size:8px!important;
+    line-height:1.2!important;
+  }
+  .selector-heading small,
+  .rank-title small,
+  .stat-card small,
+  .rank-next,
+  .map-card .section-kicker,
+  .leaderboard-head small,
+  .leaderboard-head>span,
+  #leaderboardLoginHint{
+    font-size:8px!important;
+  }
+  .selector-heading strong{font-size:13px!important}
+  .rank-title strong{font-size:18px!important}
+  .rank-points{font-size:9px!important}
+  .rank-info-btn{font-size:9px!important}
+  .stat-card strong{font-size:21px!important}
+  .arena-intro small{font-size:8px!important}
+  .arena-intro strong{font-size:18px!important}
+  .nickname-wrap label{font-size:8px!important}
+  .nickname-wrap input{font-size:12px!important}
+  .ranked-play strong{font-size:18px!important}
+  .ranked-play small{font-size:8px!important}
+  .competitive-note{font-size:8px!important}
+  .map-card>p{font-size:9px!important}
+  .match-card span{font-size:7px!important}
+  .match-card strong{font-size:10px!important}
+  .leaderboard-head strong{font-size:14px!important}
+  #realMapLeaderboard li span,#realMapLeaderboard li strong{font-size:9px!important}
+  #realMapLeaderboard li small{font-size:7px!important}
+
+  .home-dashboard{
+    height:calc(100dvh - 68px - 84px)!important;
+    padding-bottom:6px!important;
+  }
+}
