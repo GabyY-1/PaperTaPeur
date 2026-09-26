@@ -126,7 +126,7 @@ let selectedColor = localStorage.getItem("ptpColor") || COLORS[0];
 let totalCoins = Number(localStorage.getItem("ptpCoins") || profile.coins || 0);
 let bestScore = Number(localStorage.getItem("ptpBest") || profile.bestTerritory || 0);
 let bestKills = Number(localStorage.getItem("ptpBestKills") || 0);
-let soundEnabled = localStorage.getItem("ptpSound") !== "0";
+let soundEnabled = false;
 let botDifficulty = window.PTPProfile.botDifficulty(profile.rankPoints);
 
 nameInput.value = profile.name || "Player";
@@ -563,7 +563,7 @@ function resetGame() {
 
   rebuildTerritoryCounts();
 
-  for (let i = 0; i < 90; i++) coins.push(spawnCoin());
+  coins = [];
 
   camera.x = player.x;
   camera.y = player.y;
@@ -629,7 +629,6 @@ function update(dt) {
 
   resolveTrailCuts();
   resolveBodyCollisions();
-  updateCoins(dt);
   updateParticles(dt);
 
   camera.x += (player.x - camera.x) * Math.min(1, dt * 6);
@@ -2072,7 +2071,7 @@ if (homeNavBtn) {
 }
 
 if (previewPaper) {
-  previewPaper.onclick = () => openSkinsPanel();
+  previewPaper.onclick = null;
 }
 
 
