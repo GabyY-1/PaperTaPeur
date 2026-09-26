@@ -2,15 +2,34 @@
   const STORAGE_KEY = "ptpProfileV1";
 
   const RANKS = [
-    { name: "Bronze", min: 0, color: "#b77948" },
-    { name: "Argent", min: 250, color: "#b9c3cb" },
-    { name: "Or", min: 600, color: "#f1bf36" },
-    { name: "Platine", min: 1100, color: "#70d2cf" },
-    { name: "Diamant", min: 1800, color: "#6fa8ff" },
-    { name: "Maître", min: 2700, color: "#a66cff" },
-    { name: "Champion", min: 4000, color: "#ff5577" }
-  ];
+    { name: "Bronze", tier: "III", min: 0, color: "#b77948" },
+    { name: "Bronze", tier: "II", min: 85, color: "#b77948" },
+    { name: "Bronze", tier: "I", min: 170, color: "#b77948" },
 
+    { name: "Argent", tier: "III", min: 250, color: "#b9c3cb" },
+    { name: "Argent", tier: "II", min: 367, color: "#b9c3cb" },
+    { name: "Argent", tier: "I", min: 484, color: "#b9c3cb" },
+
+    { name: "Or", tier: "III", min: 600, color: "#f1bf36" },
+    { name: "Or", tier: "II", min: 767, color: "#f1bf36" },
+    { name: "Or", tier: "I", min: 934, color: "#f1bf36" },
+
+    { name: "Platine", tier: "III", min: 1100, color: "#70d2cf" },
+    { name: "Platine", tier: "II", min: 1334, color: "#70d2cf" },
+    { name: "Platine", tier: "I", min: 1567, color: "#70d2cf" },
+
+    { name: "Diamant", tier: "III", min: 1800, color: "#6fa8ff" },
+    { name: "Diamant", tier: "II", min: 2100, color: "#6fa8ff" },
+    { name: "Diamant", tier: "I", min: 2400, color: "#6fa8ff" },
+
+    { name: "Maître", tier: "III", min: 2700, color: "#a66cff" },
+    { name: "Maître", tier: "II", min: 3134, color: "#a66cff" },
+    { name: "Maître", tier: "I", min: 3567, color: "#a66cff" },
+
+    { name: "Champion", tier: "III", min: 4000, color: "#ff5577" },
+    { name: "Champion", tier: "II", min: 4500, color: "#ff5577" },
+    { name: "Champion", tier: "I", min: 5000, color: "#ff5577" }
+  ];
   const defaults = {
     id: "",
     name: "Player",
@@ -62,6 +81,7 @@
 
     return {
       ...rank,
+      fullName: rank.name + " " + rank.tier,
       index,
       next,
       progress
