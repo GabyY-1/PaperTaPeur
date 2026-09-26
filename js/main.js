@@ -3031,3 +3031,40 @@ window.addEventListener("PTPCloudReady", async () => {
     console.error(error);
   }
 });
+
+
+/* One-screen bottom navigation */
+const bottomHomeMenuBtn = document.getElementById("bottomHomeMenuBtn");
+const bottomSkinMenuBtn = document.getElementById("bottomSkinMenuBtn");
+const bottomPlayMenuBtn = document.getElementById("bottomPlayMenuBtn");
+const bottomMultiMenuBtn = document.getElementById("bottomMultiMenuBtn");
+const bottomProfileMenuBtn = document.getElementById("bottomProfileMenuBtn");
+
+function setBottomMenuActive(button) {
+  document.querySelectorAll(".bottom-nav-item").forEach(item => item.classList.remove("active"));
+  if (button?.classList.contains("bottom-nav-item")) button.classList.add("active");
+}
+
+bottomHomeMenuBtn?.addEventListener("click", () => {
+  setBottomMenuActive(bottomHomeMenuBtn);
+  show(menu);
+});
+
+bottomSkinMenuBtn?.addEventListener("click", () => {
+  setBottomMenuActive(bottomSkinMenuBtn);
+  openSkinsPanel();
+});
+
+bottomPlayMenuBtn?.addEventListener("click", () => {
+  startGame();
+});
+
+bottomMultiMenuBtn?.addEventListener("click", () => {
+  setBottomMenuActive(bottomMultiMenuBtn);
+  openMultiplayerBtn?.click();
+});
+
+bottomProfileMenuBtn?.addEventListener("click", () => {
+  setBottomMenuActive(bottomProfileMenuBtn);
+  accountBtn?.click();
+});
