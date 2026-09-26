@@ -120,7 +120,7 @@
     };
   }
 
-  async function saveMatch({ territory, kills, coinsEarned, rankDelta }) {
+  async function saveMatch({ territory, kills, coinsEarned, rankDelta, mapId = "arena" }) {
     const current = await session();
     if (!current) return false;
 
@@ -129,11 +129,56 @@
       territory: Math.max(0, Number(territory || 0)),
       kills: Math.max(0, Math.round(kills || 0)),
       coins_earned: Math.round(coinsEarned || 0),
-      rank_delta: Math.round(rankDelta || 0)
+      rank_delta: Math.round(rankDelta || 0),
+      map_id: mapId
     });
 
     if (error) throw error;
     return true;
+  }
+
+  async function saveMapRecord({ mapId, username, territory, kills }) {
+    const current = await session();
+    if (!current) return false;
+
+    const { data: existing, error: readError } = await client
+      .from("map_records")
+      .select("best_territory,best_kills,games")
+      .eq("user_id", current.user.id)
+      .eq("map_id", mapId)
+      .maybeSingle();
+
+    if (readError) throw readError;
+
+    const payload = {
+      user_id: current.user.id,
+      map_id: mapId,
+      username: (username || "Player").slice(0, 14),
+      best_territory: Math.max(Number(existing?.best_territory || 0), Number(territory || 0)),
+      best_kills: Math.max(Number(existing?.best_kills || 0), Math.round(kills || 0)),
+      games: Number(existing?.games || 0) + 1,
+      updated_at: new Date().toISOString()
+    };
+
+    const { error } = await client
+      .from("map_records")
+      .upsert(payload, { onConflict: "user_id,map_id" });
+
+    if (error) throw error;
+    return true;
+  }
+
+  async function getMapLeaderboard(mapId, limit = 10) {
+    const { data, error } = await client
+      .from("map_records")
+      .select("username,best_territory,best_kills,games,updated_at")
+      .eq("map_id", mapId)
+      .order("best_territory", { ascending: false })
+      .order("best_kills", { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return data || [];
   }
 
   function onAuthChange(callback) {
@@ -150,6 +195,8 @@
     saveProfile,
     mergeOnLogin,
     saveMatch,
+    saveMapRecord,
+    getMapLeaderboard,
     onAuthChange
   };
 })();
