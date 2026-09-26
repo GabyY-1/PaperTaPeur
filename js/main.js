@@ -2226,6 +2226,10 @@ if (window.PTPCloud) {
     } else {
       await updateCloudUI();
     }
+
+    if (typeof loadMapLeaderboard === "function") {
+      await loadMapLeaderboard();
+    }
   });
 
   updateCloudUI();
