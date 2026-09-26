@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-one-screen-nav2">
+  <link rel="stylesheet" href="css/style.css?v=20260926-hubpages1">
 </head>
 <body>
 <main id="app">
@@ -210,29 +210,20 @@
     </div>
 
     <nav class="game-bottom-nav" aria-label="Menu principal">
-      <button id="bottomHomeMenuBtn" class="bottom-nav-item active" type="button" data-bottom-action="home">
-        <span class="bottom-nav-icon home-icon"></span>
-        <strong>ACCUEIL</strong>
+      <button class="bottom-nav-item active" type="button" data-bottom-action="home">
+        <span class="bottom-nav-icon home-icon"></span><strong>ACCUEIL</strong>
       </button>
-
-      <button id="bottomSkinMenuBtn" class="bottom-nav-item" type="button" data-bottom-action="skins">
-        <span class="bottom-nav-icon skin-icon"></span>
-        <strong>SKINS</strong>
+      <button class="bottom-nav-item" type="button" data-bottom-action="skins">
+        <span class="bottom-nav-icon skin-icon"></span><strong>SKINS</strong>
       </button>
-
-      <button id="bottomPlayMenuBtn" class="bottom-nav-play" type="button" data-bottom-action="play">
-        <span class="bottom-play-arrow">▶</span>
-        <span>JOUER</span>
+      <button class="bottom-nav-play" type="button" data-bottom-action="play">
+        <span class="bottom-play-arrow">▶</span><span>JOUER</span>
       </button>
-
-      <button id="bottomMultiMenuBtn" class="bottom-nav-item" type="button" data-bottom-action="multi">
-        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span>
-        <strong>MULTI</strong>
+      <button class="bottom-nav-item" type="button" data-bottom-action="multi">
+        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
       </button>
-
-      <button id="bottomProfileMenuBtn" class="bottom-nav-item" type="button" data-bottom-action="profile">
-        <span class="bottom-nav-icon profile-icon"></span>
-        <strong>PROFIL</strong>
+      <button class="bottom-nav-item" type="button" data-bottom-action="profile">
+        <span class="bottom-nav-icon profile-icon"></span><strong>PROFIL</strong>
       </button>
     </nav>
 
@@ -250,6 +241,175 @@
       <span id="menuCoins">0</span>
       <span id="gemCount">0</span>
     </div>
+  </section>
+
+
+  <section id="skinsPage" class="screen hub-page">
+    <div class="hub-bg"></div>
+    <header class="hub-header">
+      <div>
+        <small>PERSONNALISATION</small>
+        <h1>Skins</h1>
+        <p>Choisis l'apparence de ton Paper pour tes prochaines parties.</p>
+      </div>
+      <div id="skinsSelectedPreview" class="hub-paper-preview"><i></i><i></i></div>
+    </header>
+    <div class="hub-content skins-page-content">
+      <div class="skins-toolbar">
+        <div><small>COLLECTION</small><strong id="skinsCollectionCount">9 skins</strong></div>
+        <div class="skin-filter-pills"><span class="active">TOUS</span><span>COMMUN</span><span>RARE</span><span>ÉPIQUE</span></div>
+      </div>
+      <div id="skinsPageGrid" class="skins-page-grid"></div>
+    </div>
+    <nav class="game-bottom-nav" aria-label="Menu principal">
+      <button class="bottom-nav-item" type="button" data-bottom-action="home">
+        <span class="bottom-nav-icon home-icon"></span><strong>ACCUEIL</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" class="active" data-bottom-action="skins">
+        <span class="bottom-nav-icon skin-icon"></span><strong>SKINS</strong>
+      </button>
+      <button class="bottom-nav-play" type="button" data-bottom-action="play">
+        <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="multi">
+        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="profile">
+        <span class="bottom-nav-icon profile-icon"></span><strong>PROFIL</strong>
+      </button>
+    </nav>
+  </section>
+
+  <section id="multiPage" class="screen hub-page">
+    <div class="hub-bg"></div>
+    <header class="hub-header">
+      <div>
+        <small>MULTIJOUEUR</small>
+        <h1>Joue avec tes amis</h1>
+        <p>Crée un salon privé ou rejoins un salon existant avec un code à 6 caractères.</p>
+      </div>
+      <div class="hub-multi-avatars">
+        <i style="--c:#ffd84d"></i><i style="--c:#4ca8ff"></i><i style="--c:#ff596f"></i>
+      </div>
+    </header>
+    <div class="hub-content multi-page-grid">
+      <article class="hub-action-card primary-card">
+        <span class="hub-card-number">01</span>
+        <small>HÔTE</small>
+        <h2>Créer un salon</h2>
+        <p>Choisis le mode et la carte, puis partage ton code avec jusqu'à 7 autres joueurs.</p>
+        <button id="multiPageCreateBtn" class="hub-primary-btn">CRÉER UN SALON</button>
+      </article>
+      <article class="hub-action-card">
+        <span class="hub-card-number">02</span>
+        <small>INVITÉ</small>
+        <h2>Rejoindre un salon</h2>
+        <p>Entre le code reçu pour rejoindre directement le lobby de ton ami.</p>
+        <div class="hub-join-row">
+          <input id="multiPageCodeInput" maxlength="6" placeholder="ABC123" autocomplete="off">
+          <button id="multiPageJoinBtn" class="hub-secondary-btn">REJOINDRE</button>
+        </div>
+      </article>
+      <article class="hub-info-card">
+        <small>SALON PRIVÉ</small><strong>2–8 joueurs</strong><span>Maps et modes synchronisés</span>
+      </article>
+      <article class="hub-info-card">
+        <small>EN TEMPS RÉEL</small><strong>Supabase Realtime</strong><span>Présence et mouvements synchronisés</span>
+      </article>
+    </div>
+    <nav class="game-bottom-nav" aria-label="Menu principal">
+      <button class="bottom-nav-item" type="button" data-bottom-action="home">
+        <span class="bottom-nav-icon home-icon"></span><strong>ACCUEIL</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="skins">
+        <span class="bottom-nav-icon skin-icon"></span><strong>SKINS</strong>
+      </button>
+      <button class="bottom-nav-play" type="button" data-bottom-action="play">
+        <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item" type="button" class="active" data-bottom-action="multi">
+        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="profile">
+        <span class="bottom-nav-icon profile-icon"></span><strong>PROFIL</strong>
+      </button>
+    </nav>
+  </section>
+
+  <section id="profilePage" class="screen hub-page">
+    <div class="hub-bg"></div>
+    <header class="hub-header profile-hub-header">
+      <div id="profileBannerPreview" class="profile-banner-preview">
+        <div id="profileAvatarPreview" class="profile-avatar-preview"><i></i><i></i></div>
+        <div>
+          <small id="profileTitlePreview">CONQUÉRANT</small>
+          <h1 id="profileNamePreview">Player</h1>
+          <p id="profileRankPreview">Bronze III</p>
+        </div>
+      </div>
+    </header>
+    <div class="hub-content profile-page-grid">
+      <section class="profile-custom-card">
+        <div class="hub-section-title"><small>PROFIL</small><strong>Personnalisation</strong></div>
+        <label>PSEUDO<input id="profilePageName" maxlength="14" autocomplete="off"></label>
+        <div class="profile-choice-group">
+          <small>FORME DE L'AVATAR</small>
+          <div id="avatarShapeChoices" class="profile-choice-row">
+            <button data-avatar-shape="rounded">ARRONDI</button>
+            <button data-avatar-shape="circle">ROND</button>
+            <button data-avatar-shape="diamond">DIAMANT</button>
+          </div>
+        </div>
+        <div class="profile-choice-group">
+          <small>BANNIÈRE</small>
+          <div id="bannerChoices" class="profile-choice-row">
+            <button data-banner="blue">BLEUE</button>
+            <button data-banner="yellow">JAUNE</button>
+            <button data-banner="pink">ROSE</button>
+          </div>
+        </div>
+        <label>TITRE
+          <select id="profileTitleSelect">
+            <option>Conquérant</option>
+            <option>Stratège</option>
+            <option>Éclaireur</option>
+            <option>Dominateur</option>
+            <option>Vétéran</option>
+          </select>
+        </label>
+        <button id="saveProfilePageBtn" class="hub-primary-btn">ENREGISTRER LE PROFIL</button>
+      </section>
+
+      <section class="profile-stats-card">
+        <div class="hub-section-title"><small>STATISTIQUES</small><strong>Carrière</strong></div>
+        <div class="profile-big-stats">
+          <div><small>RANG</small><strong id="profilePageRank">Bronze III</strong></div>
+          <div><small>RP</small><strong id="profilePageRP">0</strong></div>
+          <div><small>NIVEAU</small><strong id="profilePageLevel">1</strong></div>
+          <div><small>PARTIES</small><strong id="profilePageGames">0</strong></div>
+          <div><small>KILLS</small><strong id="profilePageKills">0</strong></div>
+          <div><small>RECORD</small><strong id="profilePageBest">0.0%</strong></div>
+        </div>
+        <button id="profileCloudBtn" class="hub-secondary-btn">COMPTE CLOUD</button>
+      </section>
+    </div>
+    <nav class="game-bottom-nav" aria-label="Menu principal">
+      <button class="bottom-nav-item" type="button" data-bottom-action="home">
+        <span class="bottom-nav-icon home-icon"></span><strong>ACCUEIL</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="skins">
+        <span class="bottom-nav-icon skin-icon"></span><strong>SKINS</strong>
+      </button>
+      <button class="bottom-nav-play" type="button" data-bottom-action="play">
+        <span class="bottom-play-arrow">▶</span><span>JOUER</span>
+      </button>
+      <button class="bottom-nav-item" type="button" data-bottom-action="multi">
+        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span><strong>MULTI</strong>
+      </button>
+      <button class="bottom-nav-item" type="button" class="active" data-bottom-action="profile">
+        <span class="bottom-nav-icon profile-icon"></span><strong>PROFIL</strong>
+      </button>
+    </nav>
   </section>
 
   <section id="multiplayerModal" class="screen overlay">
@@ -460,8 +620,8 @@
 
 </main>
 
-<script src="js/profile.js?v=20260926-mobilefix1"></script>
-<script src="js/main.js?v=20260926-navfix2"></script>
+<script src="js/profile.js?v=20260926-subranks1"></script>
+<script src="js/main.js?v=20260926-hubpages1"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
