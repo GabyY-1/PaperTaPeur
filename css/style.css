@@ -441,3 +441,15 @@ button{cursor:pointer}
   #quitBtn{left:8px;bottom:calc(110px + env(safe-area-inset-bottom))}
   #minimap{left:8px;bottom:calc(10px + env(safe-area-inset-bottom))}
 }
+
+
+/* Critical visibility fix: never show inactive screens */
+.screen:not(.active){display:none!important}
+#menu.screen:not(.active){display:none!important}
+#game.screen:not(.active){display:none!important}
+.overlay.screen:not(.active){display:none!important}
+
+@media(max-width:720px){
+  #menu.screen.active{display:block!important}
+  #game.screen.active{display:block!important}
+}
