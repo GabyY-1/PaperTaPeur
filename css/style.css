@@ -197,3 +197,84 @@ button{cursor:pointer}
 .lobby-selectors label{font-size:8px;color:#6e8fb5;font-weight:1000;letter-spacing:.08em}
 .lobby-selectors select{width:100%;margin-top:5px;padding:10px;border:1px solid #bdd8ec;border-radius:10px;background:#fff;color:#214b79;font-weight:1000;outline:none}
 @media(max-width:520px){.lobby-selectors{grid-template-columns:1fr}}
+
+
+/* PWA + PLATFORM ADAPTATION */
+.header-right-tools{justify-self:end;display:flex;align-items:center;gap:8px}
+.install-app-btn{height:44px;padding:0 14px;border:1px solid #9bc9ea;border-bottom:4px solid #72a9cf;border-radius:11px;background:#ffffff;color:#246ca8;font-size:9px;font-weight:1000;letter-spacing:.05em;box-shadow:0 8px 18px #7ca4c526}
+.install-app-btn.ready{background:#ffd84d;color:#6b4a00;border-color:#efbd21;border-bottom-color:#c99200}
+.install-app-btn:active{transform:translateY(2px);border-bottom-width:2px}
+
+/* Desktop browser */
+@media (min-width:1200px){
+  .competitive-layout{max-width:1500px;width:100%;margin:0 auto}
+  .arena-card{min-height:560px}
+  .left-column,.right-column{max-height:calc(100vh - 180px);overflow:auto;padding-right:2px}
+}
+
+/* Tablet / small desktop */
+@media (max-width:1050px){
+  html,body{overflow:auto;min-height:100%}
+  #menu{min-height:100vh;height:auto;overflow:visible}
+  .competitive-layout{grid-template-columns:1fr 1.05fr;align-items:start;overflow:visible;padding-bottom:30px}
+  .right-column{grid-column:1/-1}
+}
+
+/* Phone */
+@media (max-width:720px){
+  html,body{overflow:auto;min-height:100%;touch-action:manipulation}
+  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  #menu{min-height:100vh;height:auto;overflow:visible}
+  .competitive-header{
+    position:sticky;
+    top:0;
+    z-index:30;
+    grid-template-columns:auto 1fr auto;
+    padding:8px 10px;
+    background:#f8fcfff2
+  }
+  .competitive-brand{grid-column:2;grid-row:1;margin:0}
+  .competitive-brand strong{font-size:19px}
+  .competitive-brand span{font-size:7px;margin-top:4px}
+  .header-right-tools{grid-column:3;grid-row:1;gap:5px}
+  .season-box{display:none}
+  .install-app-btn{height:40px;padding:0 10px;font-size:8px}
+  .account-button{grid-column:1;grid-row:1;height:44px;padding:4px}
+  .account-avatar-mini{width:34px;height:34px}
+  .account-avatar-mini:before,.account-avatar-mini:after{top:10px}
+  .account-avatar-mini:before{left:8px}.account-avatar-mini:after{right:8px}
+
+  .competitive-layout{display:flex;flex-direction:column;gap:12px;padding:10px 10px 24px}
+  .center-column{order:-1;width:100%}
+  .left-column,.right-column{width:100%}
+  .arena-card{min-height:auto;padding:14px}
+  .mode-selector{grid-template-columns:1fr 1fr}
+  .map-selector{grid-template-columns:1fr}
+  .ranked-play{width:100%;max-width:none}
+  .nickname-wrap,.color-selector-block,.selector-block,.mode-selector{width:100%;max-width:none}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .skin-card-main .color-picker{grid-template-columns:repeat(5,1fr)}
+  .lobby-players{grid-template-columns:repeat(2,1fr)}
+  .multiplayer-modal-card{width:100%;max-height:94vh;border-radius:16px}
+}
+
+/* Very small phone */
+@media (max-width:420px){
+  .competitive-header{grid-template-columns:auto 1fr auto}
+  .competitive-brand span{display:none}
+  .install-app-btn{padding:0 8px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .mode-selector{grid-template-columns:1fr}
+  .skin-card-main .color-picker{grid-template-columns:repeat(3,1fr)}
+  .lobby-players{grid-template-columns:1fr 1fr}
+  #leaderboard{display:none}
+  #minimap{width:84px;height:84px}
+  .game-progress{width:66vw}
+}
+
+/* Installed app */
+@media (display-mode: standalone){
+  body{overscroll-behavior:none}
+  .install-app-btn{display:none!important}
+  .competitive-header{padding-top:max(10px,env(safe-area-inset-top))}
+}
