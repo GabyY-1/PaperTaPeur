@@ -258,7 +258,11 @@ let selectedMap = localStorage.getItem("ptpMap") || "arena";
 if (!MAPS[selectedMap]) selectedMap = "arena";
 
 const multiplayer = {
-  clientId: sessionStorage.getItem("ptpClientId") || (crypto.randomUUID ? crypto.randomUUID() : "ptp_" + Date.now() + "_" + Math.random().toString(36).slice(2)),
+  clientId: sessionStorage.getItem("ptpClientId") || (
+    globalThis.crypto && typeof globalThis.crypto.randomUUID === "function"
+      ? globalThis.crypto.randomUUID()
+      : "ptp_" + Date.now() + "_" + Math.random().toString(36).slice(2)
+  ),
   channel: null,
   roomCode: "",
   inRoom: false,
@@ -1874,6 +1878,22 @@ function endPointer(event) {
 canvas.addEventListener("pointerup", endPointer);
 canvas.addEventListener("pointercancel", endPointer);
 
+if (!("PointerEvent" in window)) {
+  canvas.addEventListener("touchstart", (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    event.preventDefault();
+    steerPointer({ clientX: touch.clientX, clientY: touch.clientY });
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (event) => {
+    const touch = event.touches[0];
+    if (!touch) return;
+    event.preventDefault();
+    steerPointer({ clientX: touch.clientX, clientY: touch.clientY });
+  }, { passive: false });
+}
+
 function steerPointer(event) {
   if (!player || !player.alive) return;
 
@@ -2968,8 +2988,17 @@ function shouldAutoStartMobileGame() {
 if (shouldAutoStartMobileGame()) {
   const startMobileImmediately = () => {
     setTimeout(() => {
-      if (!running && !multiplayer.inRoom) startGame();
-    }, 30);
+      try {
+        if (!running && !multiplayer.inRoom) {
+          resize();
+          startGame();
+        }
+      } catch (error) {
+        console.error("Mobile start failed:", error);
+        show(menu);
+        document.body.classList.add("mobile-start-failed");
+      }
+    }, 80);
   };
 
   if (document.readyState === "loading") {
