@@ -3,45 +3,91 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <meta name="theme-color" content="#87d7ff">
+  <meta name="theme-color" content="#6ccfff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main id="app">
-    <section id="menu" class="screen active">
-      <div class="sky"></div>
-      <div class="menu-cloud cloud-a"></div>
-      <div class="menu-cloud cloud-b"></div>
+<main id="app">
 
-      <header class="menu-top">
-        <button id="soundBtn" class="round-btn" aria-label="Son">🔊</button>
-        <div class="menu-top-center">
-          <div class="currency"><span class="coin-icon">●</span><strong id="menuCoins">0</strong></div>
-          <button id="accountBtn" class="profile-chip" aria-label="Compte">
-            <span class="avatar-mini" id="avatarMini"></span>
-            <span>
-              <small>COMPTE</small>
-              <strong id="accountName">Player</strong>
-            </span>
-          </button>
+  <section id="menu" class="screen active">
+    <div class="menu-world">
+      <div class="cloud cloud-1"></div>
+      <div class="cloud cloud-2"></div>
+      <div class="cloud cloud-3"></div>
+      <div class="hill hill-a"></div>
+      <div class="hill hill-b"></div>
+      <div class="island-shadow"></div>
+      <div class="island">
+        <div class="island-grass"></div>
+        <div class="island-dirt"></div>
+      </div>
+    </div>
+
+    <header class="top-ui">
+      <div class="top-left">
+        <button id="soundBtn" class="icon-btn" aria-label="Son">🔊</button>
+      </div>
+
+      <div class="top-right">
+        <div class="coin-pill">
+          <span class="coin-symbol">●</span>
+          <strong id="menuCoins">0</strong>
         </div>
-        <button id="settingsBtn" class="round-btn" aria-label="Réinitialiser les données">⚙</button>
-      </header>
 
-      <div class="menu-center">
-        <div class="title-wrap">
-          <div class="title-crown">▲</div>
-          <h1>PaperTaPeur</h1>
-          <p>Conquiers la carte. Coupe les traces. Reste en vie.</p>
+        <button id="accountBtn" class="account-pill" aria-label="Compte">
+          <span id="avatarMini" class="mini-paper"></span>
+          <span class="account-copy">
+            <small>NIVEAU <b id="topLevel">1</b></small>
+            <strong id="accountName">Player</strong>
+          </span>
+        </button>
+
+        <button id="settingsBtn" class="icon-btn" aria-label="Réinitialiser">⚙</button>
+      </div>
+    </header>
+
+    <aside class="side-actions">
+      <button id="skinsBtn" class="square-menu-btn">
+        <span class="menu-ico skin-ico">◈</span>
+        <small>SKINS</small>
+      </button>
+      <button id="missionsBtn" class="square-menu-btn">
+        <span class="menu-ico mission-ico">★</span>
+        <small>MISSIONS</small>
+      </button>
+      <button id="rewardsBtn" class="square-menu-btn">
+        <span class="menu-ico reward-ico">◆</span>
+        <small>CADEAU</small>
+      </button>
+      <button id="rankInfoBtn" class="square-menu-btn">
+        <span class="menu-ico rank-ico">▲</span>
+        <small>RANG</small>
+      </button>
+    </aside>
+
+    <div class="main-menu-stack">
+      <div class="logo-block">
+        <div class="logo-line">
+          <span>Paper</span><strong>TaPeur</strong>
+        </div>
+        <div class="logo-sub">CONQUÊTE DE TERRITOIRE</div>
+      </div>
+
+      <div class="hero-area">
+        <div class="floating-paper-wrap">
+          <div id="previewPaper" class="preview-paper">
+            <span class="eye e1"></span>
+            <span class="eye e2"></span>
+          </div>
         </div>
 
-        <div class="rank-card">
-          <div class="rank-badge" id="rankBadge">B</div>
-          <div class="rank-info">
-            <div class="rank-line">
+        <div class="rank-strip">
+          <div id="rankBadge" class="rank-medal">B</div>
+          <div class="rank-text">
+            <div class="rank-head">
               <strong id="rankName">Bronze</strong>
               <span id="rankPoints">0 RP</span>
             </div>
@@ -49,117 +95,141 @@
             <small id="rankNext">Prochain rang à 250 RP</small>
           </div>
         </div>
+      </div>
 
-        <div class="skin-preview">
-          <div id="previewPaper" class="preview-paper"><span></span><span></span></div>
-          <div class="preview-shadow"></div>
-        </div>
-
-        <div class="name-row">
+      <div class="play-panel">
+        <div class="name-wrap">
           <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
+          <span class="edit-pencil">✎</span>
         </div>
-
-        <button id="playBtn" class="play-button">JOUER</button>
-
-        <div class="menu-actions">
-          <button id="skinsBtn" class="menu-action">
-            <span class="action-icon">◈</span>
-            <small>SKINS</small>
-          </button>
-          <button id="missionsBtn" class="menu-action">
-            <span class="action-icon">★</span>
-            <small>MISSIONS</small>
-          </button>
-          <button id="rewardsBtn" class="menu-action">
-            <span class="action-icon">◆</span>
-            <small>RÉCOMPENSES</small>
-          </button>
-          <button id="rankInfoBtn" class="menu-action">
-            <span class="action-icon">▲</span>
-            <small>RANG</small>
-          </button>
-        </div>
-
-        <div id="colorPicker" class="color-picker hidden"></div>
-
-        <div class="menu-records">
-          <div><small>MEILLEUR TERRITOIRE</small><strong id="bestScore">0.0%</strong></div>
-          <div><small>MEILLEURES ÉLIMINATIONS</small><strong id="bestKills">0</strong></div>
-        </div>
-
-        <div class="howto">PC : ZQSD / WASD / flèches · Mobile : glisse ou maintiens ton doigt</div>
-      </div>
-    </section>
-
-    <section id="game" class="screen">
-      <canvas id="gameCanvas"></canvas>
-
-      <div id="hud">
-        <div class="score-card">
-          <span id="hudName">Player</span>
-          <strong id="territory">0.0%</strong>
-        </div>
-        <div class="hud-chip"><span class="coin-icon">●</span><strong id="coins">0</strong></div>
-        <div class="hud-chip">✦ <strong id="kills">0</strong></div>
+        <button id="playBtn" class="play-button">
+          <span>JOUER</span>
+          <small>PARTIE CLASSÉE</small>
+        </button>
       </div>
 
-      <div id="leaderboard">
-        <div class="lb-title">CLASSEMENT</div>
-        <ol id="leaderboardList"></ol>
-      </div>
-
-      <canvas id="minimap" width="160" height="160"></canvas>
-      <div id="dangerText">TRACE EN DANGER</div>
-      <div id="toast"></div>
-      <button id="quitBtn" aria-label="Quitter">×</button>
-    </section>
-
-    <section id="accountModal" class="screen overlay">
-      <div class="gameover-card account-card">
-        <div class="gameover-title">MON COMPTE</div>
-        <div class="account-avatar" id="accountAvatar"></div>
-        <label class="account-label" for="accountPseudo">Pseudo</label>
-        <input id="accountPseudo" maxlength="14" autocomplete="off">
-        <div class="account-stats">
-          <div><small>NIVEAU</small><strong id="accountLevel">1</strong></div>
-          <div><small>PARTIES</small><strong id="accountGames">0</strong></div>
-          <div><small>ÉLIMINATIONS</small><strong id="accountKills">0</strong></div>
+      <div class="menu-records">
+        <div>
+          <small>RECORD</small>
+          <strong id="bestScore">0.0%</strong>
         </div>
-        <button id="saveAccountBtn" class="play-button">ENREGISTRER</button>
-        <button id="closeAccountBtn" class="secondary-button">FERMER</button>
-        <p class="account-note">Profil sauvegardé sur cet appareil. La connexion cloud pourra être branchée ensuite.</p>
-      </div>
-    </section>
-
-    <section id="infoModal" class="screen overlay">
-      <div class="gameover-card info-card">
-        <div class="gameover-title" id="infoTitle">RANG</div>
-        <div id="infoBody"></div>
-        <button id="closeInfoBtn" class="secondary-button">FERMER</button>
-      </div>
-    </section>
-
-    <section id="gameover" class="screen overlay">
-      <div class="gameover-card">
-        <div class="gameover-title">PARTIE TERMINÉE</div>
-        <div class="gameover-paper" id="gameoverPaper"><span></span><span></span></div>
-        <div class="result-grid">
-          <div><small>Territoire</small><strong id="finalScore">0.0%</strong></div>
-          <div><small>Éliminations</small><strong id="finalKills">0</strong></div>
-          <div><small>Pièces</small><strong id="earnedCoins">0</strong></div>
+        <div>
+          <small>MEILLEURE SÉRIE</small>
+          <strong id="bestKills">0</strong>
         </div>
-        <div class="rank-result">
-          <span>Rang</span>
-          <strong id="finalRank">Bronze</strong>
-          <b id="rankDelta">+0 RP</b>
-        </div>
-        <button id="retryBtn" class="play-button">REJOUER</button>
-        <button id="menuBtn" class="secondary-button">MENU</button>
       </div>
-    </section>
-  </main>
 
-  <script src="js/profile.js"></script>
-  <script src="js/main.js"></script>
+      <div class="control-hint">ZQSD / WASD / flèches · glisse ton doigt sur mobile</div>
+      <div id="colorPicker" class="hidden"></div>
+    </div>
+  </section>
+
+  <section id="game" class="screen">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+      <div class="score-card">
+        <span id="hudName">Player</span>
+        <strong id="territory">0.0%</strong>
+      </div>
+      <div class="hud-chip"><span class="coin-symbol small">●</span><strong id="coins">0</strong></div>
+      <div class="hud-chip">✦ <strong id="kills">0</strong></div>
+    </div>
+
+    <div id="leaderboard">
+      <div class="lb-title">CLASSEMENT</div>
+      <ol id="leaderboardList"></ol>
+    </div>
+
+    <canvas id="minimap" width="160" height="160"></canvas>
+    <div id="dangerText">TRACE EN DANGER</div>
+    <div id="toast"></div>
+    <button id="quitBtn" aria-label="Quitter">×</button>
+  </section>
+
+  <section id="accountModal" class="screen overlay">
+    <div class="modal-card account-card">
+      <div class="modal-head">
+        <div>
+          <small>PROFIL</small>
+          <h2>Mon compte</h2>
+        </div>
+        <button id="closeAccountBtn" class="modal-x">×</button>
+      </div>
+
+      <div class="account-hero">
+        <div id="accountAvatar" class="account-avatar"></div>
+        <div>
+          <span class="account-rank-label" id="accountRankName">Bronze</span>
+          <strong id="accountProfileName">Player</strong>
+        </div>
+      </div>
+
+      <label class="account-label" for="accountPseudo">PSEUDO</label>
+      <input id="accountPseudo" maxlength="14" autocomplete="off">
+
+      <div class="account-stats">
+        <div><small>NIVEAU</small><strong id="accountLevel">1</strong></div>
+        <div><small>PARTIES</small><strong id="accountGames">0</strong></div>
+        <div><small>ÉLIMINATIONS</small><strong id="accountKills">0</strong></div>
+      </div>
+
+      <button id="saveAccountBtn" class="modal-primary">ENREGISTRER</button>
+      <p class="account-note">Profil sauvegardé sur cet appareil pour le moment.</p>
+    </div>
+  </section>
+
+  <section id="panelModal" class="screen overlay">
+    <div class="modal-card panel-card">
+      <div class="modal-head">
+        <div>
+          <small>PAPERTAPEUR</small>
+          <h2 id="panelTitle">Menu</h2>
+        </div>
+        <button id="panelCloseBtn" class="modal-x">×</button>
+      </div>
+      <div id="panelBody" class="panel-body"></div>
+    </div>
+  </section>
+
+  <section id="infoModal" class="screen overlay">
+    <div class="modal-card info-card">
+      <div class="modal-head">
+        <div>
+          <small>INFORMATION</small>
+          <h2 id="infoTitle">Rang</h2>
+        </div>
+        <button id="closeInfoBtn" class="modal-x">×</button>
+      </div>
+      <div id="infoBody"></div>
+    </div>
+  </section>
+
+  <section id="gameover" class="screen overlay">
+    <div class="modal-card gameover-card">
+      <div class="gameover-kicker">PARTIE TERMINÉE</div>
+      <div id="gameoverPaper" class="gameover-paper"><span></span><span></span></div>
+
+      <div class="result-grid">
+        <div><small>TERRITOIRE</small><strong id="finalScore">0.0%</strong></div>
+        <div><small>ÉLIMINATIONS</small><strong id="finalKills">0</strong></div>
+        <div><small>PIÈCES</small><strong id="earnedCoins">0</strong></div>
+      </div>
+
+      <div class="rank-result">
+        <span>RANG</span>
+        <strong id="finalRank">Bronze</strong>
+        <b id="rankDelta">+0 RP</b>
+      </div>
+
+      <button id="retryBtn" class="modal-primary big">REJOUER</button>
+      <button id="menuBtn" class="modal-secondary">MENU</button>
+    </div>
+  </section>
+
+</main>
+
+<script src="js/profile.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
