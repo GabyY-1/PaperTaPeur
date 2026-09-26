@@ -80,7 +80,22 @@
 
       <section class="center-column">
         <div class="arena-card">
-          <div class="mode-label">MODE CLASSÉ</div>
+          <div class="mode-label" id="modeLabel">MODE CLASSÉ</div>
+
+          <div class="mode-selector" id="modeSelector">
+            <button class="mode-option active" data-mode="ranked">
+              <strong>CLASSÉ</strong><small>Contrôle maximum</small>
+            </button>
+            <button class="mode-option" data-mode="blitz">
+              <strong>BLITZ</strong><small>3 minutes</small>
+            </button>
+            <button class="mode-option" data-mode="elimination">
+              <strong>ÉLIMINATION</strong><small>1 seule vie</small>
+            </button>
+            <button class="mode-option" data-mode="conquest">
+              <strong>CONQUÊTE</strong><small>60% pour gagner</small>
+            </button>
+          </div>
 
           <button id="previewPaper" class="competitive-paper" aria-label="Joueur">
             <span class="eye e1"></span>
@@ -94,8 +109,8 @@
           </div>
 
           <button id="playBtn" class="ranked-play">
-            <strong>JOUER CLASSÉ</strong>
-            <small>8 joueurs · 1 couleur chacun · IA adaptée à ton rang</small>
+            <strong id="playModeTitle">JOUER CLASSÉ</strong>
+            <small id="playModeSubtitle">8 joueurs · 1 couleur chacun · IA adaptée à ton rang</small>
           </button>
 
           <div class="competitive-note">
@@ -163,6 +178,11 @@
     <div class="game-progress">
       <div class="game-progress-track"><span id="gameProgressFill"></span></div>
       <span class="game-progress-label" id="gameProgressLabel">0%</span>
+    </div>
+
+    <div id="modeHud" class="mode-hud">
+      <strong id="modeHudName">CLASSÉ</strong>
+      <span id="modeHudDetail">8 joueurs</span>
     </div>
 
     <div id="hud">
