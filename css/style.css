@@ -1490,3 +1490,99 @@ button{cursor:pointer}
 @media(max-width:900px){
   .hub-page{display:none!important}
 }
+
+
+/* ===== DESKTOP READABILITY PASS ===== */
+@media (min-width:901px){
+  body{font-size:16px}
+
+  .competitive-header{height:76px!important;padding:10px 20px!important}
+  .home-dashboard{
+    height:calc(100dvh - 76px - 88px)!important;
+    padding:10px 16px 8px!important;
+  }
+
+  .account-text small,
+  .season-box small,
+  .brand-copy-game>span{font-size:9px!important}
+  .account-text strong{font-size:15px!important}
+  .brand-copy-game>strong{font-size:25px!important}
+  .season-box strong{font-size:15px!important}
+  .install-app-btn{font-size:11px!important;padding-inline:16px!important}
+
+  .rank-title small,
+  .stat-card small,
+  .selector-heading small,
+  .map-card .section-kicker,
+  .leaderboard-head small,
+  .nickname-wrap label,
+  .arena-intro small,
+  .rank-next,
+  #leaderboardLoginHint{
+    font-size:10px!important;
+    letter-spacing:.04em!important;
+  }
+
+  .rank-title strong{font-size:22px!important}
+  .rank-points{font-size:11px!important;padding:6px 10px!important}
+  .rank-badge{font-size:18px!important;width:46px!important;height:46px!important}
+  .rank-info-btn{font-size:10px!important;min-height:34px!important}
+  .stat-card strong{font-size:28px!important}
+
+  .mode-label,.arena-live{
+    font-size:9px!important;
+    padding:6px 10px!important;
+  }
+  .arena-intro strong{font-size:22px!important}
+  .mode-option strong,.map-option strong{font-size:12px!important}
+  .mode-option small,.map-option small{font-size:9px!important;line-height:1.25!important}
+  .selector-heading strong{font-size:15px!important}
+
+  .nickname-wrap input{
+    font-size:15px!important;
+    height:38px!important;
+  }
+  .ranked-play{min-height:56px!important}
+  .ranked-play strong{font-size:21px!important}
+  .ranked-play small{font-size:9px!important}
+  .competitive-note{font-size:9px!important}
+
+  .map-card h2{font-size:22px!important}
+  .map-card>p{font-size:10px!important;line-height:1.4!important}
+  .match-card span{font-size:8px!important}
+  .match-card strong{font-size:11px!important}
+  .leaderboard-head strong{font-size:16px!important}
+  .leaderboard-head>span{font-size:8px!important}
+  #realMapLeaderboard li span,
+  #realMapLeaderboard li strong{font-size:10px!important}
+  #realMapLeaderboard li small{font-size:8px!important}
+
+  .game-bottom-nav{
+    height:72px!important;
+    width:min(780px,calc(100% - 34px))!important;
+  }
+  .bottom-nav-item,.bottom-nav-play{height:58px!important}
+  .bottom-nav-item strong{font-size:10px!important}
+  .bottom-nav-play{font-size:14px!important}
+  .bottom-nav-icon{transform:scale(1.08)}
+
+  /* Slightly larger content cards while preserving a single-screen layout */
+  .rank-card-main{padding:12px!important}
+  .stat-card{padding:12px!important}
+  .arena-card{padding:11px 16px 12px!important}
+  .map-card,.real-leaderboard-card{padding:11px!important}
+}
+
+@media (min-width:901px) and (max-height:760px){
+  .competitive-header{height:70px!important}
+  .home-dashboard{height:calc(100dvh - 70px - 80px)!important}
+  .game-bottom-nav{height:66px!important}
+  .bottom-nav-item,.bottom-nav-play{height:52px!important}
+
+  .rank-title strong{font-size:20px!important}
+  .stat-card strong{font-size:24px!important}
+  .arena-intro strong{font-size:19px!important}
+  .mode-option strong,.map-option strong{font-size:11px!important}
+  .mode-option small,.map-option small{font-size:8px!important}
+  .ranked-play strong{font-size:19px!important}
+}
