@@ -192,3 +192,8 @@ button{cursor:pointer}
   .multiplayer-entry{grid-template-columns:1fr}
   .lobby-players{grid-template-columns:repeat(2,1fr)}
 }
+
+.lobby-selectors{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.lobby-selectors label{font-size:8px;color:#6e8fb5;font-weight:1000;letter-spacing:.08em}
+.lobby-selectors select{width:100%;margin-top:5px;padding:10px;border:1px solid #bdd8ec;border-radius:10px;background:#fff;color:#214b79;font-weight:1000;outline:none}
+@media(max-width:520px){.lobby-selectors{grid-template-columns:1fr}}
