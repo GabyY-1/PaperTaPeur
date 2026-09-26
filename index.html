@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-mobile-overlayfix1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-ultragame1">
 </head>
 <body>
 <main id="app">
@@ -34,8 +34,11 @@
       </button>
 
       <div class="competitive-brand">
-        <strong>PaperTaPeur</strong>
-        <span>COMPÉTITIF</span>
+        <span class="brand-face" aria-hidden="true"><i></i><i></i></span>
+        <span class="brand-copy-game">
+          <strong>PaperTaPeur</strong>
+          <span>COMPÉTITIF · SAISON 1</span>
+        </span>
       </div>
 
       <div class="header-right-tools">
@@ -105,7 +108,15 @@
 
       <section class="center-column">
         <div class="arena-card">
-          <div class="mode-label" id="modeLabel">MODE CLASSÉ</div>
+          <div class="arena-topline">
+            <div class="mode-label" id="modeLabel">MODE CLASSÉ</div>
+            <div class="arena-live"><i></i> SERVEURS EN LIGNE</div>
+          </div>
+
+          <div class="arena-intro">
+            <small>PRÊT À JOUER ?</small>
+            <strong>Entre dans l'arène.</strong>
+          </div>
 
           <div class="mode-selector" id="modeSelector">
             <button class="mode-option active" data-mode="ranked">
@@ -167,6 +178,14 @@
           <div class="section-kicker">CARTE SÉLECTIONNÉE</div>
           <h2 id="mapCardTitle">Arène</h2>
           <p id="mapCardDescription">Carte équilibrée pour le mode compétitif standard.</p>
+          <div class="map-visual" aria-hidden="true">
+            <div class="map-ring r1"></div>
+            <div class="map-ring r2"></div>
+            <div class="map-zone z1"></div>
+            <div class="map-zone z2"></div>
+            <div class="map-zone z3"></div>
+            <div class="map-player"></div>
+          </div>
           <div class="match-card">
             <div><span>TAILLE</span><strong id="mapSizeLabel">Standard</strong></div>
             <div><span>JOUEURS</span><strong>8</strong></div>
@@ -289,6 +308,8 @@
 
   <section id="game" class="screen">
     <canvas id="gameCanvas"></canvas>
+    <div class="game-brand-watermark"><span class="brand-face mini" aria-hidden="true"><i></i><i></i></span><b>PaperTaPeur</b></div>
+    <div class="match-status-chip"><i></i><span>MATCH EN COURS</span></div>
 
     <div class="game-progress">
       <div class="game-progress-track"><span id="gameProgressFill"></span></div>
