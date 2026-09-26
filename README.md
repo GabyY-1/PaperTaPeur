@@ -1,16 +1,24 @@
 # PaperTaPeur
 
-Prototype web original de jeu de conquête de territoire.
+PaperTaPeur est un jeu web original de conquête de territoire fortement inspiré du gameplay des jeux .io de type Paper.io.
 
-## V0.1
-- Menu principal
-- Map ronde
-- Déplacement clavier et pointeur
-- Territoire et trace
+## Fonctionnalités
+- Carte circulaire
+- Déplacement continu
+- Territoire de départ
+- Trace vulnérable hors du territoire
+- Fermeture de boucle et capture de la zone enclavée
+- Collision avec sa propre trace
+- Bots qui conquièrent et peuvent couper les traces
+- Éliminations et respawn des bots
+- Classement en direct
 - Pièces
-- Bots simples
-- Classement
-- Score et record sauvegardés avec localStorage
+- Mini-carte
+- Contrôles clavier, souris et tactile
+- Records sauvegardés avec localStorage
+- Interface responsive mobile / ordinateur
 
 ## Lancer
-Ouvrir `index.html` ou activer GitHub Pages sur la branche `main`.
+Ouvre simplement `index.html` dans un navigateur, ou active GitHub Pages sur la branche `main`.
+
+Aucune installation et aucune dépendance ne sont nécessaires.
