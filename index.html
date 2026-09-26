@@ -3,130 +3,48 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <meta name="theme-color" content="#0f8cff">
+  <meta name="theme-color" content="#08152e">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>PaperTaPeur</title>
+  <title>PaperTaPeur Competitive</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-territorykill1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-competitive1">
 </head>
 <body>
 <main id="app">
 
   <section id="menu" class="screen active">
-    <div class="menu-bg">
-      <span class="bg-orb orb-a"></span>
-      <span class="bg-orb orb-b"></span>
-      <span class="bg-orb orb-c"></span>
+    <div class="competitive-bg">
+      <div class="grid-lines"></div>
+      <div class="blue-glow glow-left"></div>
+      <div class="blue-glow glow-right"></div>
     </div>
 
-    <header class="menu-header">
-      <button id="accountBtn" class="profile-button" aria-label="Compte">
-        <span id="avatarMini" class="profile-avatar"></span>
-        <span class="profile-copy">
-          <small>NIVEAU <b id="topLevel">1</b></small>
+    <header class="competitive-header">
+      <button id="accountBtn" class="account-button">
+        <span id="avatarMini" class="account-avatar-mini"></span>
+        <span class="account-text">
+          <small>COMPTE</small>
           <strong id="accountName">Player</strong>
         </span>
       </button>
 
-      <div class="currency-group">
-        <div class="currency-pill">
-          <span class="coin-symbol">●</span>
-          <strong id="menuCoins">0</strong>
-        </div>
-        <div class="currency-pill gem-pill">
-          <span class="gem-symbol">◆</span>
-          <strong id="gemCount">0</strong>
-        </div>
+      <div class="competitive-brand">
+        <strong>PaperTaPeur</strong>
+        <span>COMPETITIVE</span>
       </div>
 
-      <div class="header-actions">
-        <button id="soundBtn" class="header-icon" aria-label="Son">🔊</button>
-        <button id="settingsBtn" class="header-icon" aria-label="Paramètres">⚙</button>
+      <div class="season-box">
+        <small>SAISON 1</small>
+        <strong>CLASSÉ</strong>
       </div>
     </header>
 
-    <div class="menu-content">
-      <section class="menu-left">
-        <div class="logo-block">
-          <h1><span>Paper</span><strong>TaPeur</strong></h1>
-          <p>Conquête de territoire</p>
-        </div>
-
-        <div class="player-card">
-          <div class="player-card-top">
-            <div>
-              <small>PSEUDO</small>
-              <div class="name-field">
-                <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
-                <span>✎</span>
-              </div>
-            </div>
-            <div class="record-box">
-              <small>RECORD</small>
-              <strong id="bestScore">0.0%</strong>
-            </div>
-          </div>
-
-          <div class="record-track"><span id="bestScoreBar"></span></div>
-
-          <div class="player-stats">
-            <div><small>MEILLEURE SÉRIE</small><strong id="bestKills">0</strong></div>
-            <div><small>MODE</small><strong>CLASSÉ</strong></div>
-          </div>
-        </div>
-
-        <div class="quick-actions">
-          <button id="shopNavBtn" class="quick-action">
-            <span>🏪</span>
-            <strong>Boutique</strong>
-            <small>Débloquer des cosmétiques</small>
-          </button>
-          <button id="missionsBtn" class="quick-action">
-            <span>📋</span>
-            <strong>Missions</strong>
-            <small>Objectifs et récompenses</small>
-          </button>
-          <button id="rewardsBtn" class="quick-action">
-            <span>🎁</span>
-            <strong>Cadeau</strong>
-            <small>Récompense quotidienne</small>
-          </button>
-        </div>
-      </section>
-
-      <section class="menu-center">
-        <div class="hero-panel">
-          <div class="hero-title">
-            <small>SKIN ACTUEL</small>
-            <strong>PRÊT À JOUER</strong>
-          </div>
-
-          <button id="previewPaper" class="hero-paper" aria-label="Changer de skin">
-            <span class="eye e1"></span>
-            <span class="eye e2"></span>
-          </button>
-          <div class="hero-shadow"></div>
-
-          <button id="playBtn" class="play-main">
-            <span class="play-icon"></span>
-            <span class="play-copy">
-              <strong>JOUER</strong>
-              <small>Partie classée</small>
-            </span>
-          </button>
-
-          <button id="skinsBtn" class="secondary-main">
-            <span>🎭</span>
-            <strong>Changer de héros</strong>
-          </button>
-        </div>
-      </section>
-
-      <section class="menu-right">
-        <div class="rank-panel">
-          <div class="rank-top">
+    <div class="competitive-layout">
+      <section class="left-column">
+        <div class="rank-card-main">
+          <div class="rank-card-head">
             <div id="rankBadge" class="rank-badge">B</div>
-            <div class="rank-name">
+            <div class="rank-title">
               <small>RANG ACTUEL</small>
               <strong id="rankName">Bronze</strong>
             </div>
@@ -136,29 +54,107 @@
           <div class="rank-progress"><span id="rankProgress"></span></div>
           <small id="rankNext" class="rank-next">Prochain rang à 250 RP</small>
 
-          <button id="rankInfoBtn" class="rank-details">
-            Voir les rangs et la difficulté IA
-          </button>
+          <button id="rankInfoBtn" class="rank-info-btn">VOIR LE CLASSEMENT DES RANGS</button>
         </div>
 
-        <div class="game-rules-card">
-          <h2>Comment jouer</h2>
-          <p>Sors de ton territoire, trace une boucle, puis reviens dans ta zone pour capturer la surface fermée.</p>
-          <div class="rule-row"><span>1</span><p>Ta trace est vulnérable tant que tu es dehors.</p></div>
-          <div class="rule-row"><span>2</span><p>Coupe les traces ennemies pour les éliminer.</p></div>
-          <div class="rule-row"><span>3</span><p>Plus ton rang monte, plus les bots deviennent intelligents.</p></div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <small>MEILLEUR TERRITOIRE</small>
+            <strong id="bestScore">0.0%</strong>
+            <div class="stat-bar"><span id="bestScoreBar"></span></div>
+          </div>
+          <div class="stat-card">
+            <small>MEILLEURES ÉLIMINATIONS</small>
+            <strong id="bestKills">0</strong>
+          </div>
+          <div class="stat-card">
+            <small>NIVEAU</small>
+            <strong id="topLevel">1</strong>
+          </div>
+          <div class="stat-card">
+            <small>PARTICIPANTS</small>
+            <strong>8</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="center-column">
+        <div class="arena-card">
+          <div class="mode-label">MODE CLASSÉ</div>
+
+          <button id="previewPaper" class="competitive-paper" aria-label="Joueur">
+            <span class="eye e1"></span>
+            <span class="eye e2"></span>
+          </button>
+          <div class="paper-shadow"></div>
+
+          <div class="nickname-wrap">
+            <label for="playerName">PSEUDO</label>
+            <input id="playerName" maxlength="14" value="Player" autocomplete="off">
+          </div>
+
+          <button id="playBtn" class="ranked-play">
+            <strong>JOUER CLASSÉ</strong>
+            <small>8 joueurs · 1 couleur chacun · IA adaptée à ton rang</small>
+          </button>
+
+          <div class="competitive-note">
+            Une partie = du RP à gagner ou à perdre.
+          </div>
+        </div>
+      </section>
+
+      <section class="right-column">
+        <div class="rules-card">
+          <div class="section-kicker">RÈGLES COMPÉTITIVES</div>
+          <h2>Prends le contrôle de la carte.</h2>
+
+          <div class="rule">
+            <span>01</span>
+            <p>Sors de ton territoire et referme une boucle pour capturer la zone.</p>
+          </div>
+          <div class="rule">
+            <span>02</span>
+            <p>Ta trace extérieure est vulnérable. Si elle est coupée, tu es éliminé.</p>
+          </div>
+          <div class="rule">
+            <span>03</span>
+            <p>Élimine un adversaire pour récupérer son territoire.</p>
+          </div>
+          <div class="rule">
+            <span>04</span>
+            <p>Les bots deviennent plus précis et agressifs quand ton rang augmente.</p>
+          </div>
+        </div>
+
+        <div class="match-card">
+          <div><span>CARTE</span><strong>Arène circulaire</strong></div>
+          <div><span>JOUEURS</span><strong>8</strong></div>
+          <div><span>OBJECTIF</span><strong>1re place</strong></div>
         </div>
       </section>
     </div>
 
-    <nav class="menu-bottom-nav">
-      <button id="homeNavBtn" class="bottom-item active"><span>⌂</span><small>Accueil</small></button>
-      <button id="bottomHeroesBtn" class="bottom-item"><span>🎭</span><small>Héros</small></button>
-      <button id="bottomMissionsBtn" class="bottom-item"><span>📋</span><small>Missions</small></button>
-      <button id="bottomWorldBtn" class="bottom-item"><span>🌍</span><small>Rangs</small></button>
-    </nav>
+    <div class="competitive-footer">
+      <span>Pas de boutique · pas de missions · pas de bonus</span>
+      <strong>Seul le classement compte.</strong>
+    </div>
 
-    <div id="colorPicker" class="hidden"></div>
+    <div class="hidden">
+      <button id="soundBtn"></button>
+      <button id="settingsBtn"></button>
+      <button id="skinsBtn"></button>
+      <button id="missionsBtn"></button>
+      <button id="rewardsBtn"></button>
+      <button id="shopNavBtn"></button>
+      <button id="homeNavBtn"></button>
+      <button id="bottomHeroesBtn"></button>
+      <button id="bottomMissionsBtn"></button>
+      <button id="bottomWorldBtn"></button>
+      <span id="menuCoins">0</span>
+      <span id="gemCount">0</span>
+      <div id="colorPicker"></div>
+    </div>
   </section>
 
   <section id="game" class="screen">
@@ -171,8 +167,11 @@
 
     <div id="hud">
       <div class="hud-stat">☠ <strong id="kills">0</strong></div>
-      <div class="hud-stat"><span class="coin-symbol small">●</span><strong id="coins">0</strong></div>
-      <div class="score-card"><span id="hudName">Player</span><strong id="territory">0.0%</strong></div>
+      <div class="score-card">
+        <span id="hudName">Player</span>
+        <strong id="territory">0.0%</strong>
+      </div>
+      <span id="coins" class="hidden">0</span>
     </div>
 
     <div id="leaderboard">
@@ -189,7 +188,7 @@
   <section id="accountModal" class="screen overlay">
     <div class="modal-card account-card">
       <div class="modal-head">
-        <div><small>PROFIL</small><h2>Mon compte</h2></div>
+        <div><small>COMPTE COMPÉTITIF</small><h2>Mon profil</h2></div>
         <button id="closeAccountBtn" class="modal-x">×</button>
       </div>
 
@@ -210,7 +209,7 @@
         <div><small>ÉLIMINATIONS</small><strong id="accountKills">0</strong></div>
       </div>
 
-      <button id="saveAccountBtn" class="modal-primary">ENREGISTRER LE PROFIL</button>
+      <button id="saveAccountBtn" class="modal-primary">ENREGISTRER</button>
 
       <div class="cloud-account-box">
         <div class="cloud-head">
@@ -238,7 +237,7 @@
   <section id="panelModal" class="screen overlay">
     <div class="modal-card panel-card">
       <div class="modal-head">
-        <div><small>PAPERTAPEUR</small><h2 id="panelTitle">Menu</h2></div>
+        <div><small>PAPERTAPEUR</small><h2 id="panelTitle">Classement</h2></div>
         <button id="panelCloseBtn" class="modal-x">×</button>
       </div>
       <div id="panelBody" class="panel-body"></div>
@@ -263,25 +262,26 @@
       <div class="result-grid">
         <div><small>TERRITOIRE</small><strong id="finalScore">0.0%</strong></div>
         <div><small>ÉLIMINATIONS</small><strong id="finalKills">0</strong></div>
-        <div><small>PIÈCES</small><strong id="earnedCoins">0</strong></div>
+        <div><small>RANG</small><strong id="finalRank">Bronze</strong></div>
       </div>
+
+      <span id="earnedCoins" class="hidden">0</span>
 
       <div class="rank-result">
-        <span>RANG</span>
-        <strong id="finalRank">Bronze</strong>
-        <b id="rankDelta">+0 RP</b>
+        <span>RP</span>
+        <strong id="rankDelta">+0 RP</strong>
       </div>
 
-      <button id="retryBtn" class="modal-primary big">REJOUER</button>
-      <button id="menuBtn" class="modal-secondary">MENU</button>
+      <button id="retryBtn" class="modal-primary big">REJOUER CLASSÉ</button>
+      <button id="menuBtn" class="modal-secondary">RETOUR AU LOBBY</button>
     </div>
   </section>
 
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/profile.js?v=20260926-coherent2"></script>
-<script src="js/cloud.js?v=20260926-coherent2"></script>
-<script src="js/main.js?v=20260926-players8-safe-spawn"></script>
+<script src="js/profile.js?v=20260926-competitive1"></script>
+<script src="js/cloud.js?v=20260926-competitive1"></script>
+<script src="js/main.js?v=20260926-competitive1"></script>
 </body>
 </html>
