@@ -65,6 +65,14 @@ const panelBody = document.getElementById("panelBody");
 const topLevel = document.getElementById("topLevel");
 const accountRankName = document.getElementById("accountRankName");
 const accountProfileName = document.getElementById("accountProfileName");
+const accountEmail = document.getElementById("accountEmail");
+const accountPassword = document.getElementById("accountPassword");
+const signInBtn = document.getElementById("signInBtn");
+const signUpBtn = document.getElementById("signUpBtn");
+const signOutBtn = document.getElementById("signOutBtn");
+const cloudStatus = document.getElementById("cloudStatus");
+const cloudDot = document.getElementById("cloudDot");
+const authMessage = document.getElementById("authMessage");
 
 const TAU = Math.PI * 2;
 
@@ -181,6 +189,86 @@ function updatePreviewColor() {
   gameoverPaper.style.background = selectedColor;
   avatarMini.style.background = selectedColor;
   accountAvatar.style.background = selectedColor;
+}
+
+function setAuthMessage(message = "", ok = false) {
+  authMessage.textContent = message;
+  authMessage.classList.toggle("auth-ok", Boolean(message) && ok);
+  authMessage.classList.toggle("auth-error", Boolean(message) && !ok);
+}
+
+async function updateCloudUI() {
+  if (!window.PTPCloud) {
+    cloudStatus.textContent = "Cloud indisponible";
+    cloudDot.classList.remove("online");
+    signOutBtn.classList.add("hidden");
+    signInBtn.classList.remove("hidden");
+    signUpBtn.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    const current = await window.PTPCloud.session();
+
+    if (current) {
+      cloudStatus.textContent = current.user.email || "Connecté";
+      cloudDot.classList.add("online");
+      signOutBtn.classList.remove("hidden");
+      signInBtn.classList.add("hidden");
+      signUpBtn.classList.add("hidden");
+      accountEmail.value = current.user.email || "";
+      accountEmail.disabled = true;
+      accountPassword.disabled = true;
+    } else {
+      cloudStatus.textContent = "Non connecté";
+      cloudDot.classList.remove("online");
+      signOutBtn.classList.add("hidden");
+      signInBtn.classList.remove("hidden");
+      signUpBtn.classList.remove("hidden");
+      accountEmail.disabled = false;
+      accountPassword.disabled = false;
+    }
+  } catch {
+    cloudStatus.textContent = "Erreur cloud";
+    cloudDot.classList.remove("online");
+  }
+}
+
+async function syncFromCloud() {
+  if (!window.PTPCloud) return false;
+
+  try {
+    const current = await window.PTPCloud.session();
+    if (!current) {
+      await updateCloudUI();
+      return false;
+    }
+
+    const merged = await window.PTPCloud.mergeOnLogin(profile, selectedColor, totalCoins);
+
+    profile = { ...profile, ...merged.profile };
+    totalCoins = Number(merged.coins ?? totalCoins);
+    selectedColor = merged.selectedColor || selectedColor;
+
+    bestScore = Math.max(bestScore, Number(profile.bestTerritory || 0));
+
+    localStorage.setItem("ptpCoins", String(totalCoins));
+    localStorage.setItem("ptpBest", bestScore.toFixed(2));
+    localStorage.setItem("ptpColor", selectedColor);
+
+    profile.coins = totalCoins;
+    window.PTPProfile.save(profile);
+
+    updatePreviewColor();
+    initPalette();
+    updateMenuStats();
+    await updateCloudUI();
+    return true;
+  } catch (error) {
+    console.error(error);
+    setAuthMessage("Synchronisation impossible.", false);
+    return false;
+  }
 }
 
 function updateMenuStats() {
@@ -1024,6 +1112,16 @@ function endGame() {
 
   updateMenuStats();
 
+  if (window.PTPCloud) {
+    window.PTPCloud.saveProfile(profile, selectedColor, totalCoins).catch(console.error);
+    window.PTPCloud.saveMatch({
+      territory: playerPercent,
+      kills,
+      coinsEarned: earned,
+      rankDelta: rankResult.delta
+    }).catch(console.error);
+  }
+
   setTimeout(() => show(gameover), 170);
 }
 
@@ -1516,13 +1614,23 @@ closeAccountBtn.onclick = () => {
   show(menu);
 };
 
-saveAccountBtn.onclick = () => {
+saveAccountBtn.onclick = async () => {
   const nextName = (accountPseudo.value.trim() || "Player").slice(0, 14);
   profile.name = nextName;
   nameInput.value = nextName;
+  profile.coins = totalCoins;
   window.PTPProfile.save(profile);
   updateMenuStats();
-  show(menu);
+
+  try {
+    if (window.PTPCloud && await window.PTPCloud.session()) {
+      await window.PTPCloud.saveProfile(profile, selectedColor, totalCoins);
+      setAuthMessage("Profil synchronisé.", true);
+    }
+  } catch (error) {
+    console.error(error);
+    setAuthMessage("Profil local enregistré, mais le cloud a échoué.", false);
+  }
 };
 
 function openInfo(title, html) {
@@ -1767,3 +1875,95 @@ function openRankPanel() {
 rankInfoBtn.onclick = () => openRankPanel();
 missionsBtn.onclick = () => openMissionsPanel();
 rewardsBtn.onclick = () => openRewardsPanel();
+
+
+signUpBtn.onclick = async () => {
+  if (!window.PTPCloud) return;
+
+  const email = accountEmail.value.trim();
+  const password = accountPassword.value;
+  const username = (accountPseudo.value.trim() || profile.name || "Player").slice(0, 14);
+
+  if (!email || password.length < 6) {
+    setAuthMessage("Entre un email et un mot de passe d’au moins 6 caractères.", false);
+    return;
+  }
+
+  signUpBtn.disabled = true;
+  setAuthMessage("Création du compte…", true);
+
+  try {
+    const data = await window.PTPCloud.signUp(email, password, username);
+
+    if (data.session) {
+      profile.name = username;
+      window.PTPProfile.save(profile);
+      await window.PTPCloud.saveProfile(profile, selectedColor, totalCoins);
+      await syncFromCloud();
+      setAuthMessage("Compte créé et connecté.", true);
+    } else {
+      setAuthMessage("Compte créé. Vérifie ton email pour confirmer l’inscription.", true);
+    }
+
+    await updateCloudUI();
+  } catch (error) {
+    console.error(error);
+    setAuthMessage(error.message || "Impossible de créer le compte.", false);
+  } finally {
+    signUpBtn.disabled = false;
+  }
+};
+
+signInBtn.onclick = async () => {
+  if (!window.PTPCloud) return;
+
+  const email = accountEmail.value.trim();
+  const password = accountPassword.value;
+
+  if (!email || !password) {
+    setAuthMessage("Entre ton email et ton mot de passe.", false);
+    return;
+  }
+
+  signInBtn.disabled = true;
+  setAuthMessage("Connexion…", true);
+
+  try {
+    await window.PTPCloud.signIn(email, password);
+    await syncFromCloud();
+    setAuthMessage("Connecté et progression synchronisée.", true);
+  } catch (error) {
+    console.error(error);
+    setAuthMessage("Email ou mot de passe incorrect, ou compte non confirmé.", false);
+  } finally {
+    signInBtn.disabled = false;
+    await updateCloudUI();
+  }
+};
+
+signOutBtn.onclick = async () => {
+  if (!window.PTPCloud) return;
+
+  try {
+    await window.PTPCloud.signOut();
+    accountPassword.value = "";
+    setAuthMessage("Déconnecté. La progression locale reste disponible.", true);
+    await updateCloudUI();
+  } catch (error) {
+    console.error(error);
+    setAuthMessage("Impossible de se déconnecter.", false);
+  }
+};
+
+if (window.PTPCloud) {
+  window.PTPCloud.onAuthChange(async (currentSession) => {
+    if (currentSession) {
+      await syncFromCloud();
+    } else {
+      await updateCloudUI();
+    }
+  });
+
+  updateCloudUI();
+  syncFromCloud();
+}
