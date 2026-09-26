@@ -22,3 +22,13 @@ PaperTaPeur est un jeu web original de conquête de territoire fortement inspir�
 Ouvre simplement `index.html` dans un navigateur, ou active GitHub Pages sur la branche `main`.
 
 Aucune installation et aucune dépendance ne sont nécessaires.
+
+## Progression classée
+- Profil local persistant
+- Niveaux et XP
+- Rangs Bronze, Argent, Or, Platine, Diamant, Maître et Champion
+- Points de rang gagnés/perdus selon les performances
+- Difficulté des bots adaptée au rang : vitesse de réaction, poursuite des traces, précision de trajectoire et prise de risque
+
+## Compte
+La version actuelle utilise un profil local sauvegardé dans le navigateur. Elle est prête à être reliée ensuite à un backend d'authentification pour une synchronisation entre appareils.
