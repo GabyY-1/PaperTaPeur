@@ -1,23 +1,28 @@
-# PaperTaPeur — Godot V0.1
+# PaperTaPeur - Godot V1
 
-Première vraie base Godot de PaperTaPeur.
+Première version PC du jeu PaperTaPeur.
 
-## Fonctionnalités
-- map ronde
-- déplacement ZQSD / WASD / flèches
+## Contrôles
+- ZQSD
+- WASD
+- Flèches directionnelles
+
+## Fonctionnement
+Le joueur possède un territoire de départ.
+Quand il sort, une trace apparaît.
+La trace seule ne donne aucun territoire.
+Quand le joueur revient dans sa zone, la boucle est fermée et l'intérieur est capturé.
+
+## Ouvrir dans Godot
+Ouvre directement le dossier `godot/` comme projet Godot, puis lance `Main.tscn`.
+
+## V1
+- déplacement continu
+- caméra fluide
+- carte ronde
 - territoire de départ
-- trace hors territoire
+- trace temporaire
 - fermeture de boucle
-- territoire irrégulier avec Polygon2D/Geometry2D
-- collision avec sa propre trace
-- bots simples
-- pièces
-- caméra
-
-## Ouvrir
-1. Installer Godot 4.x.
-2. Ouvrir le dossier `godot/`.
-3. Importer `project.godot`.
-4. Lancer avec F6/F5.
-
-Cette version est volontairement une base propre pour continuer le vrai jeu plutôt que de pousser la version Canvas web.
+- capture réelle de zone
+- auto-élimination si le joueur recoupe sa propre trace
+- compteur de territoire
