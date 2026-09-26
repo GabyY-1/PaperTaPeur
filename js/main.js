@@ -6,6 +6,8 @@ const mctx = minimap.getContext("2d");
 const menu = document.getElementById("menu");
 const game = document.getElementById("game");
 const gameover = document.getElementById("gameover");
+const accountModal = document.getElementById("accountModal");
+const infoModal = document.getElementById("infoModal");
 
 const playBtn = document.getElementById("playBtn");
 const retryBtn = document.getElementById("retryBtn");
@@ -14,6 +16,13 @@ const quitBtn = document.getElementById("quitBtn");
 const skinsBtn = document.getElementById("skinsBtn");
 const soundBtn = document.getElementById("soundBtn");
 const settingsBtn = document.getElementById("settingsBtn");
+const accountBtn = document.getElementById("accountBtn");
+const missionsBtn = document.getElementById("missionsBtn");
+const rewardsBtn = document.getElementById("rewardsBtn");
+const rankInfoBtn = document.getElementById("rankInfoBtn");
+const closeAccountBtn = document.getElementById("closeAccountBtn");
+const saveAccountBtn = document.getElementById("saveAccountBtn");
+const closeInfoBtn = document.getElementById("closeInfoBtn");
 
 const nameInput = document.getElementById("playerName");
 const colorPicker = document.getElementById("colorPicker");
@@ -33,6 +42,22 @@ const earnedCoinsEl = document.getElementById("earnedCoins");
 const leaderboardList = document.getElementById("leaderboardList");
 const dangerText = document.getElementById("dangerText");
 const toastEl = document.getElementById("toast");
+const accountNameEl = document.getElementById("accountName");
+const avatarMini = document.getElementById("avatarMini");
+const rankBadge = document.getElementById("rankBadge");
+const rankNameEl = document.getElementById("rankName");
+const rankPointsEl = document.getElementById("rankPoints");
+const rankProgressEl = document.getElementById("rankProgress");
+const rankNextEl = document.getElementById("rankNext");
+const accountAvatar = document.getElementById("accountAvatar");
+const accountPseudo = document.getElementById("accountPseudo");
+const accountLevel = document.getElementById("accountLevel");
+const accountGames = document.getElementById("accountGames");
+const accountKills = document.getElementById("accountKills");
+const finalRank = document.getElementById("finalRank");
+const rankDeltaEl = document.getElementById("rankDelta");
+const infoTitle = document.getElementById("infoTitle");
+const infoBody = document.getElementById("infoBody");
 
 const TAU = Math.PI * 2;
 
@@ -72,11 +97,15 @@ let pointerId = null;
 
 let camera = { x: 0, y: 0, zoom: 1 };
 
+let profile = window.PTPProfile.load();
 let selectedColor = localStorage.getItem("ptpColor") || COLORS[0];
-let totalCoins = Number(localStorage.getItem("ptpCoins") || 0);
-let bestScore = Number(localStorage.getItem("ptpBest") || 0);
+let totalCoins = Number(localStorage.getItem("ptpCoins") || profile.coins || 0);
+let bestScore = Number(localStorage.getItem("ptpBest") || profile.bestTerritory || 0);
 let bestKills = Number(localStorage.getItem("ptpBestKills") || 0);
 let soundEnabled = localStorage.getItem("ptpSound") !== "0";
+let botDifficulty = window.PTPProfile.botDifficulty(profile.rankPoints);
+
+nameInput.value = profile.name || "Player";
 
 let ownerGrid = null;
 let playableMask = null;
@@ -113,7 +142,7 @@ addEventListener("resize", resize);
 resize();
 
 function show(screenEl) {
-  [menu, game, gameover].forEach((s) => s.classList.remove("active"));
+  [menu, game, gameover, accountModal, infoModal].forEach((s) => s.classList.remove("active"));
   screenEl.classList.add("active");
 }
 
@@ -146,10 +175,32 @@ function updatePreviewColor() {
 }
 
 function updateMenuStats() {
+  const rank = window.PTPProfile.getRank(profile.rankPoints);
+  botDifficulty = window.PTPProfile.botDifficulty(profile.rankPoints);
+
   menuCoins.textContent = totalCoins;
   bestScoreEl.textContent = bestScore.toFixed(1) + "%";
   bestKillsEl.textContent = bestKills;
   soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
+
+  accountNameEl.textContent = profile.name || "Player";
+  nameInput.value = profile.name || nameInput.value || "Player";
+  avatarMini.style.background = selectedColor;
+  accountAvatar.style.background = selectedColor;
+
+  rankBadge.textContent = rank.name.charAt(0).toUpperCase();
+  rankBadge.style.background = rank.color;
+  rankNameEl.textContent = rank.name;
+  rankPointsEl.textContent = profile.rankPoints + " RP";
+  rankProgressEl.style.width = Math.round(rank.progress * 100) + "%";
+  rankNextEl.textContent = rank.next
+    ? "Prochain rang à " + rank.next.min + " RP"
+    : "Rang maximum";
+
+  accountPseudo.value = profile.name || "Player";
+  accountLevel.textContent = profile.level;
+  accountGames.textContent = profile.games;
+  accountKills.textContent = profile.totalKills;
 }
 
 initPalette();
@@ -248,7 +299,9 @@ function makeEntity(id, name, color, x, y, isBot) {
     angle,
     dirX: Math.cos(angle),
     dirY: Math.sin(angle),
-    speed: isBot ? 178 + Math.random() * 16 : PLAYER_SPEED,
+    speed: isBot
+      ? 158 + botDifficulty * 48 + Math.random() * (16 - botDifficulty * 6)
+      : PLAYER_SPEED,
     isBot,
     alive: true,
     outside: false,
@@ -258,7 +311,9 @@ function makeEntity(id, name, color, x, y, isBot) {
     invuln: isBot ? 1.2 : 0,
     aiTimer: 0,
     desiredAngle: angle,
-    preferredLoop: 12 + Math.floor(Math.random() * 25)
+    preferredLoop: Math.round(
+      12 + (1 - botDifficulty) * 18 + Math.random() * (20 - botDifficulty * 10)
+    )
   };
 }
 
@@ -318,7 +373,10 @@ function resetGame() {
   toastTimer = 0;
   leaderboardTimer = 0;
 
-  const name = (nameInput.value.trim() || "Player").slice(0, 14);
+  const name = (nameInput.value.trim() || profile.name || "Player").slice(0, 14);
+  profile.name = name;
+  window.PTPProfile.save(profile);
+  botDifficulty = window.PTPProfile.botDifficulty(profile.rankPoints);
 
   player = makeEntity(0, name, selectedColor, 0, 0, false);
   player.angle = 0;
@@ -468,7 +526,8 @@ function updateBot(bot, dt) {
   bot.aiTimer -= dt;
 
   if (bot.aiTimer <= 0) {
-    bot.aiTimer = 0.24 + Math.random() * 0.48;
+    const reaction = 0.58 - botDifficulty * 0.38;
+    bot.aiTimer = reaction + Math.random() * (0.28 - botDifficulty * 0.12);
 
     const distanceFromCenter = Math.hypot(bot.x, bot.y);
     const edgeDistance = WORLD_RADIUS - distanceFromCenter;
@@ -484,7 +543,8 @@ function updateBot(bot, dt) {
     } else {
       const trailTarget = findNearbyEnemyTrail(bot);
 
-      if (trailTarget && Math.random() < 0.55) {
+      const huntChance = 0.24 + botDifficulty * 0.66;
+      if (trailTarget && Math.random() < huntChance) {
         bot.desiredAngle = Math.atan2(
           trailTarget.y - bot.y,
           trailTarget.x - bot.x
@@ -494,13 +554,16 @@ function updateBot(bot, dt) {
       }
 
       if (!bot.outside && Math.random() < 0.3) {
-        bot.preferredLoop = 14 + Math.floor(Math.random() * 34);
+        const randomSpan = Math.max(8, 30 - botDifficulty * 18);
+        bot.preferredLoop = Math.round(
+          11 + (1 - botDifficulty) * 16 + Math.random() * randomSpan
+        );
       }
     }
   }
 
   let delta = normalizeAngle(bot.desiredAngle - bot.angle);
-  const maxTurn = 2.05 * dt;
+  const maxTurn = (1.45 + botDifficulty * 1.5) * dt;
 
   delta = Math.max(-maxTurn, Math.min(maxTurn, delta));
 
@@ -923,9 +986,25 @@ function endGame() {
   bestScore = Math.max(bestScore, playerPercent);
   bestKills = Math.max(bestKills, kills);
 
+  const rankResult = window.PTPProfile.recordMatch(profile, {
+    territory: playerPercent,
+    kills
+  });
+
+  profile.coins = totalCoins;
+  profile.name = player.name;
+  window.PTPProfile.save(profile);
+
+  finalRank.textContent = rankResult.rank.name;
+  rankDeltaEl.textContent =
+    (rankResult.delta >= 0 ? "+" : "") + rankResult.delta + " RP";
+  rankDeltaEl.style.color = rankResult.delta >= 0 ? "#438a61" : "#c24f5a";
+
   localStorage.setItem("ptpCoins", String(totalCoins));
   localStorage.setItem("ptpBest", bestScore.toFixed(2));
   localStorage.setItem("ptpBestKills", String(bestKills));
+  profile.bestTerritory = Math.max(profile.bestTerritory || 0, bestScore);
+  window.PTPProfile.save(profile);
 
   finalScoreEl.textContent = playerPercent.toFixed(1) + "%";
   finalKillsEl.textContent = kills;
@@ -1384,7 +1463,7 @@ soundBtn.onclick = () => {
 };
 
 settingsBtn.onclick = () => {
-  const ok = confirm("Réinitialiser les records et les pièces de PaperTaPeur ?");
+  const ok = confirm("Réinitialiser le profil, le rang, les records et les pièces de PaperTaPeur ?");
 
   if (!ok) return;
 
@@ -1396,6 +1475,10 @@ settingsBtn.onclick = () => {
   localStorage.removeItem("ptpBest");
   localStorage.removeItem("ptpBestKills");
 
+  profile = window.PTPProfile.reset();
+  profile.name = "Player";
+  window.PTPProfile.save(profile);
+
   updateMenuStats();
 };
 
@@ -1404,3 +1487,61 @@ document.addEventListener("visibilitychange", () => {
     last = performance.now();
   }
 });
+
+
+accountBtn.onclick = () => {
+  accountPseudo.value = profile.name || "Player";
+  updateMenuStats();
+  show(accountModal);
+};
+
+closeAccountBtn.onclick = () => {
+  updateMenuStats();
+  show(menu);
+};
+
+saveAccountBtn.onclick = () => {
+  const nextName = (accountPseudo.value.trim() || "Player").slice(0, 14);
+  profile.name = nextName;
+  nameInput.value = nextName;
+  window.PTPProfile.save(profile);
+  updateMenuStats();
+  show(menu);
+};
+
+function openInfo(title, html) {
+  infoTitle.textContent = title;
+  infoBody.innerHTML = html;
+  show(infoModal);
+}
+
+closeInfoBtn.onclick = () => show(menu);
+
+rankInfoBtn.onclick = () => {
+  const rank = window.PTPProfile.getRank(profile.rankPoints);
+  openInfo(
+    "RANG " + rank.name.toUpperCase(),
+    "<strong>" + profile.rankPoints + " RP</strong><br>" +
+    "Plus ton rang monte, plus les bots réagissent vite, visent mieux les traces, prennent moins de décisions au hasard et rentrent plus intelligemment dans leur territoire.<br><br>" +
+    "Difficulté IA actuelle : <strong>" + Math.round(botDifficulty * 100) + "%</strong>."
+  );
+};
+
+missionsBtn.onclick = () => {
+  openInfo(
+    "MISSIONS",
+    "<strong>Objectifs de partie</strong><br>" +
+    "• Capturer 5% de territoire<br>" +
+    "• Éliminer 2 adversaires<br>" +
+    "• Ramasser 10 pièces<br><br>" +
+    "Le vrai système de missions et récompenses sera relié au profil dans une prochaine version."
+  );
+};
+
+rewardsBtn.onclick = () => {
+  openInfo(
+    "RÉCOMPENSES",
+    "<strong>Progression</strong><br>" +
+    "Les pièces gagnées et ton rang sont déjà sauvegardés. Les coffres, skins déblocables et récompenses de niveau pourront être ajoutés ici."
+  );
+};
