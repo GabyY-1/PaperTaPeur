@@ -1,5 +1,6 @@
 [application]
 config/name="PaperTaPeur"
+config/description="PaperTaPeur - jeu territorial arcade"
 run/main_scene="res://Main.tscn"
 
 [display]
@@ -30,4 +31,8 @@ move_left={
 move_right={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":68), Object(InputEventKey,"physical_keycode":4194321)]
+}
+pause={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194305)]
 }
