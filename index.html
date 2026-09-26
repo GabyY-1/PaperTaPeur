@@ -18,7 +18,16 @@
 
       <header class="menu-top">
         <button id="soundBtn" class="round-btn" aria-label="Son">🔊</button>
-        <div class="currency"><span class="coin-icon">●</span><strong id="menuCoins">0</strong></div>
+        <div class="menu-top-center">
+          <div class="currency"><span class="coin-icon">●</span><strong id="menuCoins">0</strong></div>
+          <button id="accountBtn" class="profile-chip" aria-label="Compte">
+            <span class="avatar-mini" id="avatarMini"></span>
+            <span>
+              <small>COMPTE</small>
+              <strong id="accountName">Player</strong>
+            </span>
+          </button>
+        </div>
         <button id="settingsBtn" class="round-btn" aria-label="Réinitialiser les données">⚙</button>
       </header>
 
@@ -27,6 +36,18 @@
           <div class="title-crown">▲</div>
           <h1>PaperTaPeur</h1>
           <p>Conquiers la carte. Coupe les traces. Reste en vie.</p>
+        </div>
+
+        <div class="rank-card">
+          <div class="rank-badge" id="rankBadge">B</div>
+          <div class="rank-info">
+            <div class="rank-line">
+              <strong id="rankName">Bronze</strong>
+              <span id="rankPoints">0 RP</span>
+            </div>
+            <div class="rank-progress"><span id="rankProgress"></span></div>
+            <small id="rankNext">Prochain rang à 250 RP</small>
+          </div>
         </div>
 
         <div class="skin-preview">
@@ -40,7 +61,25 @@
 
         <button id="playBtn" class="play-button">JOUER</button>
 
-        <button id="skinsBtn" class="secondary-button">COULEUR</button>
+        <div class="menu-actions">
+          <button id="skinsBtn" class="menu-action">
+            <span class="action-icon">◈</span>
+            <small>SKINS</small>
+          </button>
+          <button id="missionsBtn" class="menu-action">
+            <span class="action-icon">★</span>
+            <small>MISSIONS</small>
+          </button>
+          <button id="rewardsBtn" class="menu-action">
+            <span class="action-icon">◆</span>
+            <small>RÉCOMPENSES</small>
+          </button>
+          <button id="rankInfoBtn" class="menu-action">
+            <span class="action-icon">▲</span>
+            <small>RANG</small>
+          </button>
+        </div>
+
         <div id="colorPicker" class="color-picker hidden"></div>
 
         <div class="menu-records">
@@ -75,6 +114,31 @@
       <button id="quitBtn" aria-label="Quitter">×</button>
     </section>
 
+    <section id="accountModal" class="screen overlay">
+      <div class="gameover-card account-card">
+        <div class="gameover-title">MON COMPTE</div>
+        <div class="account-avatar" id="accountAvatar"></div>
+        <label class="account-label" for="accountPseudo">Pseudo</label>
+        <input id="accountPseudo" maxlength="14" autocomplete="off">
+        <div class="account-stats">
+          <div><small>NIVEAU</small><strong id="accountLevel">1</strong></div>
+          <div><small>PARTIES</small><strong id="accountGames">0</strong></div>
+          <div><small>ÉLIMINATIONS</small><strong id="accountKills">0</strong></div>
+        </div>
+        <button id="saveAccountBtn" class="play-button">ENREGISTRER</button>
+        <button id="closeAccountBtn" class="secondary-button">FERMER</button>
+        <p class="account-note">Profil sauvegardé sur cet appareil. La connexion cloud pourra être branchée ensuite.</p>
+      </div>
+    </section>
+
+    <section id="infoModal" class="screen overlay">
+      <div class="gameover-card info-card">
+        <div class="gameover-title" id="infoTitle">RANG</div>
+        <div id="infoBody"></div>
+        <button id="closeInfoBtn" class="secondary-button">FERMER</button>
+      </div>
+    </section>
+
     <section id="gameover" class="screen overlay">
       <div class="gameover-card">
         <div class="gameover-title">PARTIE TERMINÉE</div>
@@ -84,12 +148,18 @@
           <div><small>Éliminations</small><strong id="finalKills">0</strong></div>
           <div><small>Pièces</small><strong id="earnedCoins">0</strong></div>
         </div>
+        <div class="rank-result">
+          <span>Rang</span>
+          <strong id="finalRank">Bronze</strong>
+          <b id="rankDelta">+0 RP</b>
+        </div>
         <button id="retryBtn" class="play-button">REJOUER</button>
         <button id="menuBtn" class="secondary-button">MENU</button>
       </div>
     </section>
   </main>
 
+  <script src="js/profile.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
