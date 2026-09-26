@@ -386,7 +386,8 @@ function updateMenuStats() {
   topLevel.textContent = profile.level;
   accountRankName.textContent = rank.name;
 
-  rankBadge.textContent = rank.name.charAt(0).toUpperCase();
+  const rankRoman = ["I","II","III","IV","V","VI","VII"][rank.index] || "I";
+  rankBadge.textContent = rankRoman;
   rankBadge.style.background = rank.color;
   rankNameEl.textContent = rank.name;
   rankPointsEl.textContent = profile.rankPoints + " RP";
