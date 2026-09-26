@@ -3,127 +3,147 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <meta name="theme-color" content="#6ccfff">
+  <meta name="theme-color" content="#0f9cff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-1700">
+  <link rel="stylesheet" href="css/style.css?v=20260926-ptp3">
 </head>
 <body>
 <main id="app">
 
   <section id="menu" class="screen active">
-    <div class="classic-bg">
-      <div class="bg-glow glow-a"></div>
-      <div class="bg-glow glow-b"></div>
-      <div class="bg-grid"></div>
+    <div class="reference-bg">
+      <div class="bg-shape s1"></div>
+      <div class="bg-shape s2"></div>
+      <div class="bg-shape s3"></div>
+      <div class="bg-shape s4"></div>
     </div>
 
-    <header class="classic-top">
-      <button id="soundBtn" class="round-control" aria-label="Son">🔊</button>
+    <header class="ref-topbar">
+      <button id="accountBtn" class="profile-round" aria-label="Compte">
+        <span id="avatarMini" class="profile-face"></span>
+      </button>
 
-      <div class="top-center">
-        <div class="brand-mini">PAPERTAPEUR</div>
-        <div class="coin-pill">
+      <div class="wallets">
+        <div class="wallet coin-wallet">
           <span class="coin-symbol">●</span>
           <strong id="menuCoins">0</strong>
+          <b class="plus">+</b>
+        </div>
+        <div class="wallet gem-wallet">
+          <span class="gem-symbol">◆</span>
+          <strong id="gemCount">0</strong>
+          <b class="plus">+</b>
         </div>
       </div>
 
-      <button id="settingsBtn" class="round-control" aria-label="Réinitialiser">⚙</button>
+      <button id="settingsBtn" class="settings-round" aria-label="Paramètres">⚙</button>
+      <button id="soundBtn" class="sound-mini" aria-label="Son">🔊</button>
     </header>
 
-    <div class="classic-menu">
-      <div class="logo-zone">
-        <div class="logo-main"><span>Paper</span><strong>TaPeur</strong></div>
-        <div class="logo-tag">CONQUÊTE DE TERRITOIRE</div>
-      </div>
-
-      <div class="status-row">
-        <div class="status-panel left-panel">
-          <span class="panel-label">MEILLEUR SCORE</span>
-          <div class="score-meter">
-            <span id="bestScoreBar"></span>
-          </div>
-          <strong id="bestScore">0.0%</strong>
-        </div>
-
-        <div class="center-avatar-wrap">
-          <button id="accountBtn" class="avatar-button" aria-label="Compte">
-            <div id="previewPaper" class="classic-paper">
-              <span class="eye e1"></span>
-              <span class="eye e2"></span>
-            </div>
-            <span class="avatar-plus">+</span>
-          </button>
-          <div class="avatar-shadow"></div>
-        </div>
-
-        <div class="status-panel right-panel">
-          <span class="panel-label">PSEUDO</span>
-          <div class="pseudo-display">
-            <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
-          </div>
-          <strong id="accountName">Player</strong>
-        </div>
-      </div>
-
-      <div class="rank-line-classic">
-        <div id="rankBadge" class="rank-medal">B</div>
-        <div class="rank-copy">
-          <div class="rank-copy-top">
-            <strong id="rankName">Bronze</strong>
-            <span id="rankPoints">0 RP</span>
-          </div>
-          <div class="rank-progress"><span id="rankProgress"></span></div>
-          <small id="rankNext">Prochain rang à 250 RP</small>
-        </div>
-      </div>
-
-      <button id="playBtn" class="classic-play" aria-label="Jouer">
-        <span class="play-triangle"></span>
-      </button>
-      <div class="play-caption">JOUER</div>
-
-      <div class="menu-nav">
-        <button id="skinsBtn" class="nav-btn">
-          <span class="nav-icon">◈</span>
-          <small>SKINS</small>
-        </button>
-        <button id="missionsBtn" class="nav-btn">
-          <span class="nav-icon">★</span>
-          <small>MISSIONS</small>
-        </button>
-        <button id="rewardsBtn" class="nav-btn">
-          <span class="nav-icon">◆</span>
-          <small>CADEAU</small>
-        </button>
-        <button id="rankInfoBtn" class="nav-btn">
-          <span class="nav-icon">▲</span>
-          <small>RANG</small>
-        </button>
-      </div>
-
-      <div class="bottom-meta">
-        <span>NIVEAU <b id="topLevel">1</b></span>
-        <span>RECORD KILLS <b id="bestKills">0</b></span>
-      </div>
-
-      <div id="colorPicker" class="hidden"></div>
-      <span id="avatarMini" class="hidden"></span>
+    <div class="promo-left">
+      <div class="promo-badge crown-badge">♛</div>
+      <span>Défis</span>
     </div>
+
+    <div class="promo-right">
+      <div class="promo-badge bonus-badge">★</div>
+      <span>Bonus</span>
+    </div>
+
+    <section class="world-focus">
+      <div class="country-card">
+        <strong>PaperTaPeur</strong>
+        <div class="country-progress">
+          <span id="bestScoreBar"></span>
+          <b id="bestScore">0.0%</b>
+        </div>
+      </div>
+
+      <div class="land-blob">
+        <div class="land-inner">
+          <button id="previewPaper" class="hero-skin" aria-label="Changer de skin">
+            <span class="eye e1"></span>
+            <span class="eye e2"></span>
+          </button>
+          <div class="hero-shadow"></div>
+        </div>
+      </div>
+
+      <div class="party-card">
+        <div class="party-creatures">
+          <i></i><i></i><i></i>
+        </div>
+        <strong>PARTY</strong>
+        <span>🏆 <b id="bestKills">0</b></span>
+      </div>
+
+      <div class="rank-card-home">
+        <div id="rankBadge" class="rank-crown">B</div>
+        <strong id="rankName">Bronze</strong>
+        <span>★ <b id="rankPoints">0 RP</b></span>
+        <div class="rank-progress"><span id="rankProgress"></span></div>
+        <small id="rankNext">Prochain rang à 250 RP</small>
+      </div>
+
+      <div class="nickname-box">
+        <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
+        <span>✎</span>
+      </div>
+
+      <button id="playBtn" class="giant-play" aria-label="Jouer">
+        <span></span>
+      </button>
+    </section>
+
+    <nav class="bottom-nav">
+      <button id="shopNavBtn" class="nav-item">
+        <span>🏪</span>
+        <small>BOUTIQUE</small>
+      </button>
+      <button id="skinsBtn" class="nav-item">
+        <span>🎭</span>
+        <small>HÉROS</small>
+      </button>
+      <button id="homeNavBtn" class="nav-home active">
+        <span>⌂</span>
+      </button>
+      <button id="missionsBtn" class="nav-item">
+        <span>📋</span>
+        <small>MISSIONS</small>
+      </button>
+      <button id="rankInfoBtn" class="nav-item">
+        <span>🌍</span>
+        <small>MONDE</small>
+      </button>
+    </nav>
+
+    <button id="rewardsBtn" class="daily-hidden" aria-label="Cadeau quotidien">CADEAU</button>
+    <span id="accountName" class="hidden">Player</span>
+    <span id="topLevel" class="hidden">1</span>
+    <div id="colorPicker" class="hidden"></div>
   </section>
 
   <section id="game" class="screen">
     <canvas id="gameCanvas"></canvas>
 
+    <div class="game-progress">
+      <div class="game-progress-track"><span id="gameProgressFill"></span></div>
+      <span class="game-progress-label" id="gameProgressLabel">0%</span>
+      <span class="progress-prize p1">●</span>
+      <span class="progress-prize p2">◆</span>
+      <span class="progress-prize p3">●</span>
+      <span class="progress-prize p4">♛</span>
+    </div>
+
     <div id="hud">
+      <div class="hud-stat skull-stat">☠ <strong id="kills">0</strong></div>
+      <div class="hud-stat coin-stat"><span class="coin-symbol small">●</span><strong id="coins">0</strong></div>
       <div class="score-card">
         <span id="hudName">Player</span>
         <strong id="territory">0.0%</strong>
       </div>
-      <div class="hud-chip"><span class="coin-symbol small">●</span><strong id="coins">0</strong></div>
-      <div class="hud-chip">✦ <strong id="kills">0</strong></div>
     </div>
 
     <div id="leaderboard">
@@ -140,13 +160,9 @@
   <section id="accountModal" class="screen overlay">
     <div class="modal-card account-card">
       <div class="modal-head">
-        <div>
-          <small>PROFIL</small>
-          <h2>Mon compte</h2>
-        </div>
+        <div><small>PROFIL</small><h2>Mon compte</h2></div>
         <button id="closeAccountBtn" class="modal-x">×</button>
       </div>
-
       <div class="account-hero">
         <div id="accountAvatar" class="account-avatar"></div>
         <div>
@@ -154,53 +170,38 @@
           <strong id="accountProfileName">Player</strong>
         </div>
       </div>
-
       <label class="account-label" for="accountPseudo">PSEUDO</label>
       <input id="accountPseudo" maxlength="14" autocomplete="off">
-
       <div class="account-stats">
         <div><small>NIVEAU</small><strong id="accountLevel">1</strong></div>
         <div><small>PARTIES</small><strong id="accountGames">0</strong></div>
         <div><small>ÉLIMINATIONS</small><strong id="accountKills">0</strong></div>
       </div>
-
       <button id="saveAccountBtn" class="modal-primary">ENREGISTRER LE PROFIL</button>
 
       <div class="cloud-account-box">
         <div class="cloud-head">
-          <div>
-            <small>COMPTE CLOUD</small>
-            <strong id="cloudStatus">Non connecté</strong>
-          </div>
+          <div><small>COMPTE CLOUD</small><strong id="cloudStatus">Non connecté</strong></div>
           <span id="cloudDot" class="cloud-dot"></span>
         </div>
-
         <label class="account-label" for="accountEmail">EMAIL</label>
         <input id="accountEmail" type="email" autocomplete="email" placeholder="ton@email.fr">
-
         <label class="account-label" for="accountPassword">MOT DE PASSE</label>
         <input id="accountPassword" type="password" autocomplete="current-password" minlength="6" placeholder="6 caractères minimum">
-
         <div class="cloud-actions">
           <button id="signInBtn" class="modal-primary compact">SE CONNECTER</button>
           <button id="signUpBtn" class="modal-secondary compact">CRÉER UN COMPTE</button>
         </div>
-
         <button id="signOutBtn" class="modal-secondary hidden">SE DÉCONNECTER</button>
         <p id="authMessage" class="account-note"></p>
       </div>
-
-      <p class="account-note">Connecté : progression, rang, pièces et statistiques sont synchronisés avec Supabase.</p>
     </div>
   </section>
 
   <section id="panelModal" class="screen overlay">
     <div class="modal-card panel-card">
       <div class="modal-head">
-        <div>
-          <small>PAPERTAPEUR</small>
-          <h2 id="panelTitle">Menu</h2>
-        </div>
+        <div><small>PAPERTAPEUR</small><h2 id="panelTitle">Menu</h2></div>
         <button id="panelCloseBtn" class="modal-x">×</button>
       </div>
       <div id="panelBody" class="panel-body"></div>
@@ -210,10 +211,7 @@
   <section id="infoModal" class="screen overlay">
     <div class="modal-card info-card">
       <div class="modal-head">
-        <div>
-          <small>INFORMATION</small>
-          <h2 id="infoTitle">Rang</h2>
-        </div>
+        <div><small>INFORMATION</small><h2 id="infoTitle">Rang</h2></div>
         <button id="closeInfoBtn" class="modal-x">×</button>
       </div>
       <div id="infoBody"></div>
@@ -224,19 +222,14 @@
     <div class="modal-card gameover-card">
       <div class="gameover-kicker">PARTIE TERMINÉE</div>
       <div id="gameoverPaper" class="gameover-paper"><span></span><span></span></div>
-
       <div class="result-grid">
         <div><small>TERRITOIRE</small><strong id="finalScore">0.0%</strong></div>
         <div><small>ÉLIMINATIONS</small><strong id="finalKills">0</strong></div>
         <div><small>PIÈCES</small><strong id="earnedCoins">0</strong></div>
       </div>
-
       <div class="rank-result">
-        <span>RANG</span>
-        <strong id="finalRank">Bronze</strong>
-        <b id="rankDelta">+0 RP</b>
+        <span>RANG</span><strong id="finalRank">Bronze</strong><b id="rankDelta">+0 RP</b>
       </div>
-
       <button id="retryBtn" class="modal-primary big">REJOUER</button>
       <button id="menuBtn" class="modal-secondary">MENU</button>
     </div>
@@ -245,8 +238,8 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="js/profile.js?v=20260926-1700"></script>
-<script src="js/cloud.js?v=20260926-1700"></script>
-<script src="js/main.js?v=20260926-1700"></script>
+<script src="js/profile.js?v=20260926-ptp3"></script>
+<script src="js/cloud.js?v=20260926-ptp3"></script>
+<script src="js/main.js?v=20260926-ptp3"></script>
 </body>
 </html>
