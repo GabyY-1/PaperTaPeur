@@ -429,3 +429,15 @@ button{cursor:pointer}
   #realMapLeaderboard li:nth-child(n+4){display:none}
   #leaderboardLoginHint{display:none}
 }
+
+
+/* Mobile gameplay first */
+@media (max-width:720px){
+  #game.screen.active{position:fixed;inset:0;width:100vw;height:100dvh;overflow:hidden}
+  #gameCanvas{width:100vw!important;height:100dvh!important}
+  #hud{top:58px;left:8px}
+  .game-progress{top:8px;width:62vw}
+  .mode-hud{top:42px}
+  #quitBtn{left:8px;bottom:calc(110px + env(safe-area-inset-bottom))}
+  #minimap{left:8px;bottom:calc(10px + env(safe-area-inset-bottom))}
+}
