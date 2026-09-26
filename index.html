@@ -13,114 +13,104 @@
 <main id="app">
 
   <section id="menu" class="screen active">
-    <div class="menu-world">
-      <div class="cloud cloud-1"></div>
-      <div class="cloud cloud-2"></div>
-      <div class="cloud cloud-3"></div>
-      <div class="hill hill-a"></div>
-      <div class="hill hill-b"></div>
-      <div class="island-shadow"></div>
-      <div class="island">
-        <div class="island-grass"></div>
-        <div class="island-dirt"></div>
-      </div>
+    <div class="classic-bg">
+      <div class="bg-glow glow-a"></div>
+      <div class="bg-glow glow-b"></div>
+      <div class="bg-grid"></div>
     </div>
 
-    <header class="top-ui">
-      <div class="top-left">
-        <button id="soundBtn" class="icon-btn" aria-label="Son">🔊</button>
-      </div>
+    <header class="classic-top">
+      <button id="soundBtn" class="round-control" aria-label="Son">🔊</button>
 
-      <div class="top-right">
+      <div class="top-center">
+        <div class="brand-mini">PAPERTAPEUR</div>
         <div class="coin-pill">
           <span class="coin-symbol">●</span>
           <strong id="menuCoins">0</strong>
         </div>
-
-        <button id="accountBtn" class="account-pill" aria-label="Compte">
-          <span id="avatarMini" class="mini-paper"></span>
-          <span class="account-copy">
-            <small>NIVEAU <b id="topLevel">1</b></small>
-            <strong id="accountName">Player</strong>
-          </span>
-        </button>
-
-        <button id="settingsBtn" class="icon-btn" aria-label="Réinitialiser">⚙</button>
       </div>
+
+      <button id="settingsBtn" class="round-control" aria-label="Réinitialiser">⚙</button>
     </header>
 
-    <aside class="side-actions">
-      <button id="skinsBtn" class="square-menu-btn">
-        <span class="menu-ico skin-ico">◈</span>
-        <small>SKINS</small>
-      </button>
-      <button id="missionsBtn" class="square-menu-btn">
-        <span class="menu-ico mission-ico">★</span>
-        <small>MISSIONS</small>
-      </button>
-      <button id="rewardsBtn" class="square-menu-btn">
-        <span class="menu-ico reward-ico">◆</span>
-        <small>CADEAU</small>
-      </button>
-      <button id="rankInfoBtn" class="square-menu-btn">
-        <span class="menu-ico rank-ico">▲</span>
-        <small>RANG</small>
-      </button>
-    </aside>
-
-    <div class="main-menu-stack">
-      <div class="logo-block">
-        <div class="logo-line">
-          <span>Paper</span><strong>TaPeur</strong>
-        </div>
-        <div class="logo-sub">CONQUÊTE DE TERRITOIRE</div>
+    <div class="classic-menu">
+      <div class="logo-zone">
+        <div class="logo-main"><span>Paper</span><strong>TaPeur</strong></div>
+        <div class="logo-tag">CONQUÊTE DE TERRITOIRE</div>
       </div>
 
-      <div class="hero-area">
-        <div class="floating-paper-wrap">
-          <div id="previewPaper" class="preview-paper">
-            <span class="eye e1"></span>
-            <span class="eye e2"></span>
+      <div class="status-row">
+        <div class="status-panel left-panel">
+          <span class="panel-label">MEILLEUR SCORE</span>
+          <div class="score-meter">
+            <span id="bestScoreBar"></span>
           </div>
+          <strong id="bestScore">0.0%</strong>
         </div>
 
-        <div class="rank-strip">
-          <div id="rankBadge" class="rank-medal">B</div>
-          <div class="rank-text">
-            <div class="rank-head">
-              <strong id="rankName">Bronze</strong>
-              <span id="rankPoints">0 RP</span>
+        <div class="center-avatar-wrap">
+          <button id="accountBtn" class="avatar-button" aria-label="Compte">
+            <div id="previewPaper" class="classic-paper">
+              <span class="eye e1"></span>
+              <span class="eye e2"></span>
             </div>
-            <div class="rank-progress"><span id="rankProgress"></span></div>
-            <small id="rankNext">Prochain rang à 250 RP</small>
+            <span class="avatar-plus">+</span>
+          </button>
+          <div class="avatar-shadow"></div>
+        </div>
+
+        <div class="status-panel right-panel">
+          <span class="panel-label">PSEUDO</span>
+          <div class="pseudo-display">
+            <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
           </div>
+          <strong id="accountName">Player</strong>
         </div>
       </div>
 
-      <div class="play-panel">
-        <div class="name-wrap">
-          <input id="playerName" maxlength="14" value="Player" autocomplete="off" aria-label="Pseudo">
-          <span class="edit-pencil">✎</span>
+      <div class="rank-line-classic">
+        <div id="rankBadge" class="rank-medal">B</div>
+        <div class="rank-copy">
+          <div class="rank-copy-top">
+            <strong id="rankName">Bronze</strong>
+            <span id="rankPoints">0 RP</span>
+          </div>
+          <div class="rank-progress"><span id="rankProgress"></span></div>
+          <small id="rankNext">Prochain rang à 250 RP</small>
         </div>
-        <button id="playBtn" class="play-button">
-          <span>JOUER</span>
-          <small>PARTIE CLASSÉE</small>
+      </div>
+
+      <button id="playBtn" class="classic-play" aria-label="Jouer">
+        <span class="play-triangle"></span>
+      </button>
+      <div class="play-caption">JOUER</div>
+
+      <div class="menu-nav">
+        <button id="skinsBtn" class="nav-btn">
+          <span class="nav-icon">◈</span>
+          <small>SKINS</small>
+        </button>
+        <button id="missionsBtn" class="nav-btn">
+          <span class="nav-icon">★</span>
+          <small>MISSIONS</small>
+        </button>
+        <button id="rewardsBtn" class="nav-btn">
+          <span class="nav-icon">◆</span>
+          <small>CADEAU</small>
+        </button>
+        <button id="rankInfoBtn" class="nav-btn">
+          <span class="nav-icon">▲</span>
+          <small>RANG</small>
         </button>
       </div>
 
-      <div class="menu-records">
-        <div>
-          <small>RECORD</small>
-          <strong id="bestScore">0.0%</strong>
-        </div>
-        <div>
-          <small>MEILLEURE SÉRIE</small>
-          <strong id="bestKills">0</strong>
-        </div>
+      <div class="bottom-meta">
+        <span>NIVEAU <b id="topLevel">1</b></span>
+        <span>RECORD KILLS <b id="bestKills">0</b></span>
       </div>
 
-      <div class="control-hint">ZQSD / WASD / flèches · glisse ton doigt sur mobile</div>
       <div id="colorPicker" class="hidden"></div>
+      <span id="avatarMini" class="hidden"></span>
     </div>
   </section>
 
