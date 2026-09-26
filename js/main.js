@@ -99,6 +99,9 @@ const signOutBtn = document.getElementById("signOutBtn");
 const cloudStatus = document.getElementById("cloudStatus");
 const cloudDot = document.getElementById("cloudDot");
 const authMessage = document.getElementById("authMessage");
+const skinsPage = document.getElementById("skinsPage");
+const multiPage = document.getElementById("multiPage");
+const profilePage = document.getElementById("profilePage");
 const multiplayerModal = document.getElementById("multiplayerModal");
 const openMultiplayerBtn = document.getElementById("openMultiplayerBtn");
 const closeMultiplayerBtn = document.getElementById("closeMultiplayerBtn");
@@ -122,6 +125,30 @@ const startLobbyGameBtn = document.getElementById("startLobbyGameBtn");
 const leaveRoomBtn = document.getElementById("leaveRoomBtn");
 const lobbyModeSelect = document.getElementById("lobbyModeSelect");
 const lobbyMapSelect = document.getElementById("lobbyMapSelect");
+
+const skinsPageGrid = document.getElementById("skinsPageGrid");
+const skinsSelectedPreview = document.getElementById("skinsSelectedPreview");
+const skinsCollectionCount = document.getElementById("skinsCollectionCount");
+const multiPageCreateBtn = document.getElementById("multiPageCreateBtn");
+const multiPageCodeInput = document.getElementById("multiPageCodeInput");
+const multiPageJoinBtn = document.getElementById("multiPageJoinBtn");
+const profileBannerPreview = document.getElementById("profileBannerPreview");
+const profileAvatarPreview = document.getElementById("profileAvatarPreview");
+const profileTitlePreview = document.getElementById("profileTitlePreview");
+const profileNamePreview = document.getElementById("profileNamePreview");
+const profileRankPreview = document.getElementById("profileRankPreview");
+const profilePageName = document.getElementById("profilePageName");
+const avatarShapeChoices = document.getElementById("avatarShapeChoices");
+const bannerChoices = document.getElementById("bannerChoices");
+const profileTitleSelect = document.getElementById("profileTitleSelect");
+const saveProfilePageBtn = document.getElementById("saveProfilePageBtn");
+const profilePageRank = document.getElementById("profilePageRank");
+const profilePageRP = document.getElementById("profilePageRP");
+const profilePageLevel = document.getElementById("profilePageLevel");
+const profilePageGames = document.getElementById("profilePageGames");
+const profilePageKills = document.getElementById("profilePageKills");
+const profilePageBest = document.getElementById("profilePageBest");
+const profileCloudBtn = document.getElementById("profileCloudBtn");
 
 const TAU = Math.PI * 2;
 
@@ -294,7 +321,7 @@ addEventListener("resize", resize);
 resize();
 
 function show(screenEl) {
-  [menu, game, gameover, accountModal, infoModal, panelModal, multiplayerModal].forEach((s) => s && s.classList.remove("active"));
+  [menu, skinsPage, multiPage, profilePage, game, gameover, accountModal, infoModal, panelModal, multiplayerModal].forEach((s) => s && s.classList.remove("active"));
   screenEl.classList.add("active");
 }
 
@@ -436,12 +463,11 @@ function updateMenuStats() {
   avatarMini.style.background = selectedColor;
   accountAvatar.style.background = selectedColor;
   topLevel.textContent = profile.level;
-  accountRankName.textContent = rank.name;
+  accountRankName.textContent = rank.fullName;
 
-  const rankRoman = ["I","II","III","IV","V","VI","VII"][rank.index] || "I";
-  rankBadge.textContent = rankRoman;
+  rankBadge.textContent = rank.tier;
   rankBadge.style.background = rank.color;
-  rankNameEl.textContent = rank.name;
+  rankNameEl.textContent = rank.fullName;
   rankPointsEl.textContent = profile.rankPoints + " RP";
   rankProgressEl.style.width = Math.round(rank.progress * 100) + "%";
   rankNextEl.textContent = rank.next
@@ -1407,7 +1433,7 @@ function endGame() {
   profile.name = player.name;
   window.PTPProfile.save(profile);
 
-  finalRank.textContent = rankResult.rank.name;
+  finalRank.textContent = rankResult.rank.fullName;
   rankDeltaEl.textContent =
     (rankResult.delta >= 0 ? "+" : "") + rankResult.delta + " RP";
   rankDeltaEl.style.color = rankResult.delta >= 0 ? "#438a61" : "#c24f5a";
@@ -2208,15 +2234,25 @@ function openRewardsPanel() {
 function openRankPanel() {
   const currentRank = window.PTPProfile.getRank(profile.rankPoints);
 
-  const ranks = window.PTPProfile.RANKS.map((rank, index) => {
-    const current = rank.name === currentRank.name;
-    const roman = ["I","II","III","IV","V","VI","VII"][index] || "I";
+  const groups = ["Bronze","Argent","Or","Platine","Diamant","Maître","Champion"].map((name) => {
+    const divisions = window.PTPProfile.RANKS.filter((rank) => rank.name === name);
+    const active = divisions.some((rank) => rank.name === currentRank.name && rank.tier === currentRank.tier);
+    const color = divisions[0]?.color || "#8ba3b7";
 
     return `
-      <div class="rank-item" ${current ? 'style="outline:3px solid #668cff"' : ""}>
-        <div class="rank-dot" style="background:${rank.color}">${roman}</div>
-        <strong>${rank.name}</strong>
-        <span>${rank.min} RP</span>
+      <div class="rank-group-card ${active ? "current" : ""}">
+        <div class="rank-group-title">
+          <span class="rank-dot" style="background:${color}">${active ? currentRank.tier : divisions[0].tier}</span>
+          <strong>${name}</strong>
+        </div>
+        <div class="rank-divisions">
+          ${divisions.map((rank) => {
+            const current = rank.name === currentRank.name && rank.tier === currentRank.tier;
+            return `<div class="rank-division ${current ? "active" : ""}">
+              <b>${rank.tier}</b><span>${rank.min} RP</span>
+            </div>`;
+          }).join("")}
+        </div>
       </div>
     `;
   }).join("");
@@ -2224,15 +2260,15 @@ function openRankPanel() {
   openPanel("RANGS", `
     <div class="panel-row">
       <div class="copy">
-        <strong>${currentRank.name} · ${profile.rankPoints} RP</strong>
-        <small>Difficulté IA actuelle : ${Math.round(botDifficulty * 100)}%</small>
+        <strong>${currentRank.fullName} · ${profile.rankPoints} RP</strong>
+        <small>Chaque rang possède maintenant trois divisions : III, II puis I.</small>
       </div>
     </div>
-    <div class="rank-list">${ranks}</div>
+    <div class="rank-groups-grid">${groups}</div>
     <div class="panel-row">
       <div class="copy">
-        <strong>IA adaptative</strong>
-        <small>Les bots réagissent plus vite, visent mieux les traces et prennent de meilleures décisions quand ton rang augmente.</small>
+        <strong>Progression compétitive</strong>
+        <small>Monte de division grâce à tes performances. Une fois la division I dépassée, tu passes au rang suivant.</small>
       </div>
     </div>
   `);
@@ -3033,44 +3069,235 @@ window.addEventListener("PTPCloudReady", async () => {
 });
 
 
-/* One-screen bottom navigation */
-const bottomHomeMenuBtn = document.getElementById("bottomHomeMenuBtn");
-const bottomSkinMenuBtn = document.getElementById("bottomSkinMenuBtn");
-const bottomPlayMenuBtn = document.getElementById("bottomPlayMenuBtn");
-const bottomMultiMenuBtn = document.getElementById("bottomMultiMenuBtn");
-const bottomProfileMenuBtn = document.getElementById("bottomProfileMenuBtn");
 
-function setBottomMenuActive(button) {
-  document.querySelectorAll(".bottom-nav-item").forEach(item => item.classList.remove("active"));
-  if (button?.classList.contains("bottom-nav-item")) button.classList.add("active");
+/* ===== HUB PAGES, SKINS, PROFILE PERSONALIZATION ===== */
+const SKIN_META = [
+  { color:"#ffd84d", name:"Solar", rarity:"COMMUN", description:"Le Paper jaune classique." },
+  { color:"#4ca8ff", name:"Aqua", rarity:"COMMUN", description:"Bleu vif et compétitif." },
+  { color:"#ff596f", name:"Pulse", rarity:"RARE", description:"Rouge énergique." },
+  { color:"#62d990", name:"Mint", rarity:"COMMUN", description:"Vert clair et propre." },
+  { color:"#a96cff", name:"Nebula", rarity:"ÉPIQUE", description:"Violet profond." },
+  { color:"#ff914d", name:"Ember", rarity:"RARE", description:"Orange incandescent." },
+  { color:"#35d6cc", name:"Cyan", rarity:"RARE", description:"Cyan rapide et lumineux." },
+  { color:"#f36fc8", name:"Candy", rarity:"ÉPIQUE", description:"Rose éclatant." },
+  { color:"#355c7d", name:"Midnight", rarity:"ÉPIQUE", description:"Bleu nuit discret." }
+];
+
+const PROFILE_CUSTOM_KEY = "ptpProfileCustomV1";
+
+function loadProfileCustom() {
+  try {
+    return {
+      avatarShape:"rounded",
+      banner:"blue",
+      title:"Conquérant",
+      ...JSON.parse(localStorage.getItem(PROFILE_CUSTOM_KEY) || "{}")
+    };
+  } catch {
+    return { avatarShape:"rounded", banner:"blue", title:"Conquérant" };
+  }
 }
 
-bottomHomeMenuBtn?.addEventListener("click", () => {
-  setBottomMenuActive(bottomHomeMenuBtn);
-  show(menu);
+let profileCustom = loadProfileCustom();
+
+function saveProfileCustom() {
+  localStorage.setItem(PROFILE_CUSTOM_KEY, JSON.stringify(profileCustom));
+}
+
+function applyProfileCustom() {
+  const rank = window.PTPProfile.getRank(profile.rankPoints);
+
+  [avatarMini, accountAvatar, profileAvatarPreview].forEach((avatar) => {
+    if (!avatar) return;
+    avatar.style.background = selectedColor;
+    avatar.classList.remove("shape-rounded","shape-circle","shape-diamond");
+    avatar.classList.add("shape-" + profileCustom.avatarShape);
+  });
+
+  if (profileBannerPreview) {
+    profileBannerPreview.classList.remove("banner-blue","banner-yellow","banner-pink");
+    profileBannerPreview.classList.add("banner-" + profileCustom.banner);
+  }
+
+  if (profileTitlePreview) profileTitlePreview.textContent = profileCustom.title.toUpperCase();
+  if (profileNamePreview) profileNamePreview.textContent = profile.name || "Player";
+  if (profileRankPreview) profileRankPreview.textContent = rank.fullName;
+
+  if (profilePageName) profilePageName.value = profile.name || "Player";
+  if (profileTitleSelect) profileTitleSelect.value = profileCustom.title;
+
+  if (avatarShapeChoices) {
+    avatarShapeChoices.querySelectorAll("[data-avatar-shape]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.avatarShape === profileCustom.avatarShape);
+    });
+  }
+
+  if (bannerChoices) {
+    bannerChoices.querySelectorAll("[data-banner]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.banner === profileCustom.banner);
+    });
+  }
+}
+
+function renderProfilePage() {
+  const rank = window.PTPProfile.getRank(profile.rankPoints);
+  if (profilePageRank) profilePageRank.textContent = rank.fullName;
+  if (profilePageRP) profilePageRP.textContent = profile.rankPoints;
+  if (profilePageLevel) profilePageLevel.textContent = profile.level;
+  if (profilePageGames) profilePageGames.textContent = profile.games || 0;
+  if (profilePageKills) profilePageKills.textContent = profile.totalKills || 0;
+  if (profilePageBest) profilePageBest.textContent = Number(profile.bestTerritory || bestScore || 0).toFixed(1) + "%";
+  applyProfileCustom();
+}
+
+async function chooseSkin(color) {
+  if (!COLORS.includes(color)) return;
+  selectedColor = color;
+  localStorage.setItem("ptpColor", color);
+  updatePreviewColor();
+  initPalette();
+  updateMenuStats();
+  applyProfileCustom();
+  renderSkinsPage();
+
+  try {
+    if (window.PTPCloud && await window.PTPCloud.session()) {
+      await window.PTPCloud.saveProfile(profile, selectedColor, totalCoins);
+    }
+    if (multiplayer.inRoom) await trackMultiplayerPresence();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function renderSkinsPage() {
+  if (!skinsPageGrid) return;
+
+  if (skinsCollectionCount) skinsCollectionCount.textContent = SKIN_META.length + " SKINS";
+  if (skinsSelectedPreview) skinsSelectedPreview.style.background = selectedColor;
+
+  skinsPageGrid.innerHTML = SKIN_META.map((skin, index) => {
+    const selected = skin.color === selectedColor;
+    return `
+      <button class="skin-showcase-card ${selected ? "selected" : ""}" data-page-skin="${skin.color}">
+        <div class="skin-card-top">
+          <span class="skin-number">${String(index + 1).padStart(2,"0")}</span>
+          <span class="skin-rarity rarity-${skin.rarity.toLowerCase().replace("é","e")}">${skin.rarity}</span>
+        </div>
+        <div class="skin-paper-stage">
+          <div class="skin-paper-character" style="--skin:${skin.color}"><i></i><i></i></div>
+          <div class="skin-paper-shadow"></div>
+        </div>
+        <div class="skin-showcase-copy">
+          <strong>${skin.name}</strong>
+          <small>${skin.description}</small>
+        </div>
+        <span class="skin-equip-state">${selected ? "ÉQUIPÉ" : "ÉQUIPER"}</span>
+      </button>
+    `;
+  }).join("");
+}
+
+skinsPageGrid?.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-page-skin]");
+  if (!card) return;
+  chooseSkin(card.dataset.pageSkin);
 });
 
-bottomSkinMenuBtn?.addEventListener("click", () => {
-  setBottomMenuActive(bottomSkinMenuBtn);
-  openSkinsPanel();
+avatarShapeChoices?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-avatar-shape]");
+  if (!button) return;
+  profileCustom.avatarShape = button.dataset.avatarShape;
+  saveProfileCustom();
+  applyProfileCustom();
 });
 
-bottomPlayMenuBtn?.addEventListener("click", () => {
-  startGame();
+bannerChoices?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-banner]");
+  if (!button) return;
+  profileCustom.banner = button.dataset.banner;
+  saveProfileCustom();
+  applyProfileCustom();
 });
 
-bottomMultiMenuBtn?.addEventListener("click", () => {
-  setBottomMenuActive(bottomMultiMenuBtn);
-  openMultiplayerBtn?.click();
+profileTitleSelect?.addEventListener("change", () => {
+  profileCustom.title = profileTitleSelect.value;
+  saveProfileCustom();
+  applyProfileCustom();
 });
 
-bottomProfileMenuBtn?.addEventListener("click", () => {
-  setBottomMenuActive(bottomProfileMenuBtn);
-  accountBtn?.click();
+saveProfilePageBtn?.addEventListener("click", async () => {
+  profile.name = (profilePageName.value.trim() || "Player").slice(0,14);
+  nameInput.value = profile.name;
+  window.PTPProfile.save(profile);
+  saveProfileCustom();
+  updateMenuStats();
+  renderProfilePage();
+
+  try {
+    if (window.PTPCloud && await window.PTPCloud.session()) {
+      await window.PTPCloud.saveProfile(profile, selectedColor, totalCoins);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  saveProfilePageBtn.textContent = "ENREGISTRÉ";
+  setTimeout(() => saveProfilePageBtn.textContent = "ENREGISTRER LE PROFIL", 1000);
 });
 
+profileCloudBtn?.addEventListener("click", () => {
+  accountPseudo.value = profile.name || "Player";
+  updateMenuStats();
+  show(accountModal);
+});
 
-/* Reliable bottom navigation: event delegation */
+multiPageCodeInput?.addEventListener("input", () => {
+  multiPageCodeInput.value = cleanRoomCode(multiPageCodeInput.value);
+});
+
+multiPageCreateBtn?.addEventListener("click", async () => {
+  show(multiplayerModal);
+  await joinMultiplayerRoom(createRoomCode(), true);
+});
+
+multiPageJoinBtn?.addEventListener("click", async () => {
+  const code = cleanRoomCode(multiPageCodeInput.value);
+  if (code.length !== 6) {
+    multiPageCodeInput.focus();
+    return;
+  }
+  show(multiplayerModal);
+  await joinMultiplayerRoom(code, false);
+});
+
+function openHubPage(action) {
+  document.querySelectorAll(".bottom-nav-item").forEach((item) => item.classList.remove("active"));
+  document.querySelectorAll('[data-bottom-action="' + action + '"]').forEach((item) => {
+    if (item.classList.contains("bottom-nav-item")) item.classList.add("active");
+  });
+
+  if (action === "home") {
+    running = false;
+    updateMenuStats();
+    show(menu);
+    return;
+  }
+  if (action === "skins") {
+    renderSkinsPage();
+    show(skinsPage);
+    return;
+  }
+  if (action === "multi") {
+    show(multiPage);
+    return;
+  }
+  if (action === "profile") {
+    renderProfilePage();
+    show(profilePage);
+  }
+}
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-bottom-action]");
   if (!button) return;
@@ -3079,37 +3306,21 @@ document.addEventListener("click", (event) => {
   event.stopPropagation();
 
   const action = button.dataset.bottomAction;
-
-  document.querySelectorAll(".bottom-nav-item").forEach(item => item.classList.remove("active"));
-  if (button.classList.contains("bottom-nav-item")) button.classList.add("active");
-
-  if (action === "home") {
-    running = false;
-    show(menu);
-    return;
-  }
-
-  if (action === "skins") {
-    openSkinsPanel();
-    return;
-  }
-
   if (action === "play") {
     startGame();
     return;
   }
-
-  if (action === "multi") {
-    multiplayerEntry.classList.toggle("hidden", multiplayer.inRoom);
-    multiplayerLobby.classList.toggle("hidden", !multiplayer.inRoom);
-    if (multiplayer.inRoom) renderMultiplayerLobby();
-    show(multiplayerModal);
-    return;
-  }
-
-  if (action === "profile") {
-    accountPseudo.value = profile.name || "Player";
-    updateMenuStats();
-    show(accountModal);
-  }
+  openHubPage(action);
 }, true);
+
+const originalUpdateMenuStats = updateMenuStats;
+updateMenuStats = function() {
+  originalUpdateMenuStats();
+  applyProfileCustom();
+  if (profilePage?.classList.contains("active")) renderProfilePage();
+  if (skinsPage?.classList.contains("active")) renderSkinsPage();
+};
+
+renderSkinsPage();
+renderProfilePage();
+updateMenuStats();
