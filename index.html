@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-light-ranks1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-color1">
 </head>
 <body>
 <main id="app">
@@ -126,6 +126,14 @@
             <input id="playerName" maxlength="14" value="Player" autocomplete="off">
           </div>
 
+          <div class="color-selector-block">
+            <div class="selector-heading">
+              <small>COULEUR</small>
+              <strong>Ta couleur en partie</strong>
+            </div>
+            <div id="colorPicker" class="color-picker"></div>
+          </div>
+
           <button id="playBtn" class="ranked-play">
             <strong id="playModeTitle">JOUER CLASSÉ</strong>
             <small id="playModeSubtitle">8 joueurs · 1 couleur chacun · IA adaptée à ton rang</small>
@@ -180,7 +188,6 @@
       <button id="bottomWorldBtn"></button>
       <span id="menuCoins">0</span>
       <span id="gemCount">0</span>
-      <div id="colorPicker"></div>
     </div>
   </section>
 
@@ -314,6 +321,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/profile.js?v=20260926-competitive1"></script>
 <script src="js/cloud.js?v=20260926-maps-leaderboard3"></script>
-<script src="js/main.js?v=20260926-light-ranks1"></script>
+<script src="js/main.js?v=20260926-color1"></script>
 </body>
 </html>
