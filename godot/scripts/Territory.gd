@@ -86,13 +86,12 @@ func _flood_fill_outside(blocked: Dictionary) -> Dictionary:
 	var visited: Dictionary = {}
 	var queue: Array[Vector2i] = []
 
-	for x in range(-half_grid, half_grid + 1):
-		_try_enqueue(Vector2i(x, -half_grid), blocked, visited, queue)
-		_try_enqueue(Vector2i(x, half_grid), blocked, visited, queue)
-
 	for y in range(-half_grid, half_grid + 1):
-		_try_enqueue(Vector2i(-half_grid, y), blocked, visited, queue)
-		_try_enqueue(Vector2i(half_grid, y), blocked, visited, queue)
+		for x in range(-half_grid, half_grid + 1):
+			var cell := Vector2i(x, y)
+			var world := cell_to_world(cell)
+			if world.length() <= world_radius and world.length() >= world_radius - CELL_SIZE * 2.2:
+				_try_enqueue(cell, blocked, visited, queue)
 
 	var index := 0
 	var dirs := [
