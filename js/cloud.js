@@ -186,7 +186,7 @@
 
   async function getGlobalLeaderboard(metric = "rank_points", limit = 50) {
     const allowed = ["rank_points","level","games","total_kills","best_territory"];
-    const safeMetric = allowed.includes(metric) ? metric : "rank_points";
+    const safeMetric = metric === "general" ? "rank_points" : (allowed.includes(metric) ? metric : "rank_points");
 
     const { data, error } = await client.rpc("get_global_leaderboard", {
       metric: safeMetric,
