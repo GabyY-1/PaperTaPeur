@@ -1,3 +1,5 @@
+config_version=5
+
 [application]
 config/name="PaperTaPeur"
 config/description="PaperTaPeur - jeu territorial arcade"
