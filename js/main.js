@@ -2966,11 +2966,39 @@ function shouldAutoStartMobileGame() {
 }
 
 if (shouldAutoStartMobileGame()) {
-  window.addEventListener("load", () => {
+  const startMobileImmediately = () => {
     setTimeout(() => {
-      if (!running && !multiplayer.inRoom) {
-        startGame();
-      }
-    }, 120);
-  });
+      if (!running && !multiplayer.inRoom) startGame();
+    }, 30);
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startMobileImmediately, { once: true });
+  } else {
+    startMobileImmediately();
+  }
 }
+
+window.addEventListener("PTPCloudReady", async () => {
+  try {
+    await updateCloudUI();
+    await syncFromCloud();
+
+    if (window.PTPCloud?.onAuthChange) {
+      window.PTPCloud.onAuthChange(async (currentSession) => {
+        if (currentSession) await syncFromCloud();
+        else await updateCloudUI();
+
+        if (typeof loadMapLeaderboard === "function") {
+          await loadMapLeaderboard();
+        }
+      });
+    }
+
+    if (typeof loadMapLeaderboard === "function") {
+      await loadMapLeaderboard();
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
