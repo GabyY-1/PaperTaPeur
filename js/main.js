@@ -99,6 +99,7 @@ const signOutBtn = document.getElementById("signOutBtn");
 const cloudStatus = document.getElementById("cloudStatus");
 const cloudDot = document.getElementById("cloudDot");
 const authMessage = document.getElementById("authMessage");
+const leaderboardPage = document.getElementById("leaderboardPage");
 const skinsPage = document.getElementById("skinsPage");
 const multiPage = document.getElementById("multiPage");
 const profilePage = document.getElementById("profilePage");
@@ -149,6 +150,13 @@ const profilePageGames = document.getElementById("profilePageGames");
 const profilePageKills = document.getElementById("profilePageKills");
 const profilePageBest = document.getElementById("profilePageBest");
 const profileCloudBtn = document.getElementById("profileCloudBtn");
+const openLeaderboardPageBtn = document.getElementById("openLeaderboardPageBtn");
+const leaderboardTabs = document.getElementById("leaderboardTabs");
+const leaderboardMapTabs = document.getElementById("leaderboardMapTabs");
+const leaderboardPageKicker = document.getElementById("leaderboardPageKicker");
+const leaderboardPageTitle = document.getElementById("leaderboardPageTitle");
+const leaderboardPageState = document.getElementById("leaderboardPageState");
+const leaderboardPageList = document.getElementById("leaderboardPageList");
 
 const TAU = Math.PI * 2;
 
@@ -321,7 +329,7 @@ addEventListener("resize", resize);
 resize();
 
 function show(screenEl) {
-  [menu, skinsPage, multiPage, profilePage, game, gameover, accountModal, infoModal, panelModal, multiplayerModal].forEach((s) => s && s.classList.remove("active"));
+  [menu, leaderboardPage, skinsPage, multiPage, profilePage, game, gameover, accountModal, infoModal, panelModal, multiplayerModal].forEach((s) => s && s.classList.remove("active"));
   screenEl.classList.add("active");
 }
 
@@ -3283,6 +3291,11 @@ function openHubPage(action) {
     show(menu);
     return;
   }
+  if (action === "leaderboard") {
+    show(leaderboardPage);
+    loadFullLeaderboard();
+    return;
+  }
   if (action === "skins") {
     renderSkinsPage();
     show(skinsPage);
@@ -3320,6 +3333,125 @@ updateMenuStats = function() {
   if (profilePage?.classList.contains("active")) renderProfilePage();
   if (skinsPage?.classList.contains("active")) renderSkinsPage();
 };
+
+
+let leaderboardView = { scope: "global", metric: "rank_points", map: null };
+
+const LEADERBOARD_LABELS = {
+  rank_points: { title:"Classement RP", value:(r)=> String(r.rank_points ?? 0) + " RP" },
+  best_territory: { title:"Meilleur territoire", value:(r)=> Number(r.best_territory ?? 0).toFixed(1) + "%" },
+  total_kills: { title:"Kills totaux", value:(r)=> String(r.total_kills ?? 0) },
+  level: { title:"Niveau", value:(r)=> "Niv. " + String(r.level ?? 1) },
+  games: { title:"Parties jouées", value:(r)=> String(r.games ?? 0) },
+  best_kills: { title:"Meilleurs kills", value:(r)=> String(r.best_kills ?? 0) }
+};
+
+function leaderboardMedal(index) {
+  if (index === 0) return "1";
+  if (index === 1) return "2";
+  if (index === 2) return "3";
+  return String(index + 1);
+}
+
+function renderLeaderboardRows(rows, metric, isMap = false) {
+  if (!leaderboardPageList) return;
+  if (!rows.length) {
+    leaderboardPageList.innerHTML = '<div class="leaderboard-empty-full">Aucun score enregistré dans ce classement pour le moment.</div>';
+    return;
+  }
+
+  const label = LEADERBOARD_LABELS[metric] || LEADERBOARD_LABELS.rank_points;
+  leaderboardPageList.innerHTML = rows.map((row, index) => {
+    const rank = !isMap && window.PTPProfile
+      ? window.PTPProfile.getRank(Number(row.rank_points || 0))
+      : null;
+    const color = row.selected_color || "#7da3be";
+    const secondary = isMap
+      ? (metric === "best_kills"
+          ? Number(row.best_territory || 0).toFixed(1) + "% territoire"
+          : String(row.best_kills || 0) + " kills")
+      : (rank ? rank.fullName + " · Niv. " + String(row.level || 1) : "");
+
+    return `
+      <div class="leaderboard-full-row ${index < 3 ? "podium top-" + (index + 1) : ""}">
+        <div class="leaderboard-position">${leaderboardMedal(index)}</div>
+        <div class="leaderboard-player-color" style="background:${color}"></div>
+        <div class="leaderboard-player-copy">
+          <strong>${escapeHtml(String(row.username || "Player"))}</strong>
+          <small>${escapeHtml(secondary)}</small>
+        </div>
+        <div class="leaderboard-main-value">${escapeHtml(label.value(row))}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  })[char]);
+}
+
+async function loadFullLeaderboard() {
+  if (!leaderboardPageList) return;
+
+  const view = leaderboardView;
+  const label = LEADERBOARD_LABELS[view.metric] || LEADERBOARD_LABELS.rank_points;
+
+  leaderboardPageTitle.textContent = label.title;
+  leaderboardPageKicker.textContent = view.scope === "global"
+    ? "GLOBAL"
+    : (view.map || "CARTE").toUpperCase();
+  leaderboardPageState.textContent = "CHARGEMENT…";
+  leaderboardPageList.innerHTML = '<div class="leaderboard-loading">Chargement du classement…</div>';
+
+  try {
+    if (!window.PTPCloud) throw new Error("Cloud indisponible");
+
+    let rows = [];
+    if (view.scope === "global") {
+      rows = await window.PTPCloud.getGlobalLeaderboard(view.metric, 50);
+    } else {
+      rows = await window.PTPCloud.getMapLeaderboard(view.map, 50, view.metric);
+    }
+
+    renderLeaderboardRows(rows, view.metric, view.scope === "map");
+    leaderboardPageState.textContent = rows.length + (rows.length > 1 ? " JOUEURS" : " JOUEUR");
+  } catch (error) {
+    console.error(error);
+    leaderboardPageState.textContent = "INDISPONIBLE";
+    leaderboardPageList.innerHTML = '<div class="leaderboard-empty-full">Le classement en ligne est momentanément indisponible.</div>';
+  }
+}
+
+function setLeaderboardView(button) {
+  if (!button) return;
+  document.querySelectorAll("[data-board-scope]").forEach((item) => item.classList.remove("active"));
+  button.classList.add("active");
+
+  leaderboardView = {
+    scope: button.dataset.boardScope || "global",
+    metric: button.dataset.boardMetric || "rank_points",
+    map: button.dataset.map || null
+  };
+  loadFullLeaderboard();
+}
+
+leaderboardTabs?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-board-scope]");
+  if (button) setLeaderboardView(button);
+});
+
+leaderboardMapTabs?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-board-scope]");
+  if (button) setLeaderboardView(button);
+});
+
+openLeaderboardPageBtn?.addEventListener("click", () => openHubPage("leaderboard"));
+
+window.addEventListener("PTPCloudReady", () => {
+  if (leaderboardPage?.classList.contains("active")) loadFullLeaderboard();
+});
 
 renderSkinsPage();
 renderProfilePage();
