@@ -3335,9 +3335,10 @@ updateMenuStats = function() {
 };
 
 
-let leaderboardView = { scope: "global", metric: "rank_points", map: null };
+let leaderboardView = { scope: "global", metric: "general", map: null };
 
 const LEADERBOARD_LABELS = {
+  general: { title:"Classement général", value:(r)=> String(r.rank_points ?? 0) + " RP" },
   rank_points: { title:"Classement RP", value:(r)=> String(r.rank_points ?? 0) + " RP" },
   best_territory: { title:"Meilleur territoire", value:(r)=> Number(r.best_territory ?? 0).toFixed(1) + "%" },
   total_kills: { title:"Kills totaux", value:(r)=> String(r.total_kills ?? 0) },
@@ -3372,13 +3373,23 @@ function renderLeaderboardRows(rows, metric, isMap = false) {
           : String(row.best_kills || 0) + " kills")
       : (rank ? rank.fullName + " · Niv. " + String(row.level || 1) : "");
 
+    const generalStats = metric === "general" && !isMap
+      ? `<div class="leaderboard-general-stats">
+          <span><b>${Number(row.best_territory || 0).toFixed(1)}%</b><small>TERRITOIRE</small></span>
+          <span><b>${row.total_kills || 0}</b><small>KILLS</small></span>
+          <span><b>${row.games || 0}</b><small>PARTIES</small></span>
+          <span><b>${row.level || 1}</b><small>NIVEAU</small></span>
+        </div>`
+      : "";
+
     return `
-      <div class="leaderboard-full-row ${index < 3 ? "podium top-" + (index + 1) : ""}">
+      <div class="leaderboard-full-row ${metric === "general" && !isMap ? "general-row" : ""} ${index < 3 ? "podium top-" + (index + 1) : ""}">
         <div class="leaderboard-position">${leaderboardMedal(index)}</div>
         <div class="leaderboard-player-color" style="background:${color}"></div>
         <div class="leaderboard-player-copy">
           <strong>${escapeHtml(String(row.username || "Player"))}</strong>
           <small>${escapeHtml(secondary)}</small>
+          ${generalStats}
         </div>
         <div class="leaderboard-main-value">${escapeHtml(label.value(row))}</div>
       </div>
