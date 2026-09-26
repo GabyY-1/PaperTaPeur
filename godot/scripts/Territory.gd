@@ -1,25 +1,33 @@
 extends Node2D
 
-const CELL_SIZE := 14
-const START_RADIUS := 120.0
+const CELL_SIZE := 22
+const START_RADIUS := 105.0
 
 var world_radius := 1100.0
-var grid_size := 0
 var half_grid := 0
-var owned: Dictionary = {}
-var player_color := Color("#ffd84d")
+var owner_by_cell: Dictionary = {}
+var colors: Dictionary = {}
 
-func setup(radius: float, start_position: Vector2) -> void:
+func setup(radius: float) -> void:
 	world_radius = radius
-	grid_size = int(ceil((world_radius * 2.0) / CELL_SIZE)) + 4
-	half_grid = grid_size / 2
-	owned.clear()
+	half_grid = int(ceil(world_radius / CELL_SIZE)) + 2
+	owner_by_cell.clear()
+	colors.clear()
+	queue_redraw()
 
-	for y in range(-half_grid, half_grid + 1):
-		for x in range(-half_grid, half_grid + 1):
-			var world := cell_to_world(Vector2i(x, y))
-			if world.length() <= START_RADIUS:
-				owned[Vector2i(x, y)] = true
+func register_owner(owner_id: int, color: Color) -> void:
+	colors[owner_id] = color
+
+func create_start_area(owner_id: int, center: Vector2) -> void:
+	var min_cell := world_to_cell(center - Vector2(START_RADIUS, START_RADIUS))
+	var max_cell := world_to_cell(center + Vector2(START_RADIUS, START_RADIUS))
+
+	for y in range(min_cell.y, max_cell.y + 1):
+		for x in range(min_cell.x, max_cell.x + 1):
+			var cell := Vector2i(x, y)
+			var p := cell_to_world(cell)
+			if p.distance_to(center) <= START_RADIUS and p.length() <= world_radius:
+				owner_by_cell[cell] = owner_id
 
 	queue_redraw()
 
@@ -35,41 +43,51 @@ func cell_to_world(cell: Vector2i) -> Vector2:
 		cell.y * CELL_SIZE + CELL_SIZE * 0.5
 	)
 
-func is_owned_world(world: Vector2) -> bool:
-	return owned.has(world_to_cell(world))
+func get_owner_world(world: Vector2) -> int:
+	return int(owner_by_cell.get(world_to_cell(world), -1))
 
-func capture_from_trail(points: PackedVector2Array) -> void:
-	if points.size() < 3:
-		return
+func capture(owner_id: int, trail: PackedVector2Array) -> int:
+	if trail.size() < 3:
+		return 0
 
-	var blocked: Dictionary = {}
-	for i in range(points.size() - 1):
-		_rasterize_segment(points[i], points[i + 1], blocked)
+	var barriers: Dictionary = {}
 
-	for cell in blocked.keys():
-		owned[cell] = true
+	for cell in owner_by_cell.keys():
+		if int(owner_by_cell[cell]) == owner_id:
+			barriers[cell] = true
 
-	var outside_cells := _flood_fill_outside(blocked)
+	for i in range(trail.size() - 1):
+		_rasterize_segment(trail[i], trail[i + 1], barriers)
+
+	for cell in barriers.keys():
+		if cell_to_world(cell).length() <= world_radius:
+			owner_by_cell[cell] = owner_id
+
+	var outside := _flood_from_border(barriers)
+	var gained := 0
 
 	for y in range(-half_grid, half_grid + 1):
 		for x in range(-half_grid, half_grid + 1):
 			var cell := Vector2i(x, y)
-			var world := cell_to_world(cell)
+			var p := cell_to_world(cell)
 
-			if world.length() > world_radius:
+			if p.length() > world_radius:
 				continue
 
-			if owned.has(cell):
+			if barriers.has(cell):
 				continue
 
-			if not outside_cells.has(cell):
-				owned[cell] = true
+			if not outside.has(cell):
+				if int(owner_by_cell.get(cell, -1)) != owner_id:
+					gained += 1
+				owner_by_cell[cell] = owner_id
 
 	queue_redraw()
+	return gained
 
-func _rasterize_segment(a: Vector2, b: Vector2, blocked: Dictionary) -> void:
+func _rasterize_segment(a: Vector2, b: Vector2, barriers: Dictionary) -> void:
 	var distance := a.distance_to(b)
-	var steps := max(1, int(ceil(distance / (CELL_SIZE * 0.35))))
+	var steps := max(1, int(ceil(distance / (CELL_SIZE * 0.3))))
 
 	for i in range(steps + 1):
 		var t := float(i) / float(steps)
@@ -78,22 +96,21 @@ func _rasterize_segment(a: Vector2, b: Vector2, blocked: Dictionary) -> void:
 
 		for oy in range(-1, 2):
 			for ox in range(-1, 2):
-				var c := center + Vector2i(ox, oy)
-				if cell_to_world(c).length() <= world_radius:
-					blocked[c] = true
+				var cell := center + Vector2i(ox, oy)
+				if cell_to_world(cell).length() <= world_radius:
+					barriers[cell] = true
 
-func _flood_fill_outside(blocked: Dictionary) -> Dictionary:
+func _flood_from_border(barriers: Dictionary) -> Dictionary:
 	var visited: Dictionary = {}
 	var queue: Array[Vector2i] = []
 
 	for y in range(-half_grid, half_grid + 1):
 		for x in range(-half_grid, half_grid + 1):
 			var cell := Vector2i(x, y)
-			var world := cell_to_world(cell)
-			if world.length() <= world_radius and world.length() >= world_radius - CELL_SIZE * 2.2:
-				_try_enqueue(cell, blocked, visited, queue)
+			var p := cell_to_world(cell)
+			if p.length() <= world_radius and p.length() >= world_radius - CELL_SIZE * 2.2:
+				_try_enqueue(cell, barriers, visited, queue)
 
-	var index := 0
 	var dirs := [
 		Vector2i(1, 0),
 		Vector2i(-1, 0),
@@ -101,56 +118,61 @@ func _flood_fill_outside(blocked: Dictionary) -> Dictionary:
 		Vector2i(0, -1)
 	]
 
+	var index := 0
 	while index < queue.size():
 		var current := queue[index]
 		index += 1
-
 		for dir in dirs:
-			_try_enqueue(current + dir, blocked, visited, queue)
+			_try_enqueue(current + dir, barriers, visited, queue)
 
 	return visited
 
-func _try_enqueue(cell: Vector2i, blocked: Dictionary, visited: Dictionary, queue: Array[Vector2i]) -> void:
+func _try_enqueue(cell: Vector2i, barriers: Dictionary, visited: Dictionary, queue: Array[Vector2i]) -> void:
 	if cell.x < -half_grid or cell.x > half_grid:
 		return
 	if cell.y < -half_grid or cell.y > half_grid:
 		return
-	if visited.has(cell):
+	if visited.has(cell) or barriers.has(cell):
 		return
-	if blocked.has(cell):
-		return
-	if owned.has(cell):
-		return
-
-	var world := cell_to_world(cell)
-	if world.length() > world_radius:
+	if cell_to_world(cell).length() > world_radius:
 		return
 
 	visited[cell] = true
 	queue.append(cell)
 
-func get_owned_percent() -> float:
-	var owned_count := 0
-	var playable_count := 0
+func clear_owner(owner_id: int) -> void:
+	var remove: Array[Vector2i] = []
+	for cell in owner_by_cell.keys():
+		if int(owner_by_cell[cell]) == owner_id:
+			remove.append(cell)
+
+	for cell in remove:
+		owner_by_cell.erase(cell)
+
+	queue_redraw()
+
+func get_percent(owner_id: int) -> float:
+	var total := 0
+	var owned := 0
 
 	for y in range(-half_grid, half_grid + 1):
 		for x in range(-half_grid, half_grid + 1):
 			var cell := Vector2i(x, y)
 			if cell_to_world(cell).length() <= world_radius:
-				playable_count += 1
-				if owned.has(cell):
-					owned_count += 1
+				total += 1
+				if int(owner_by_cell.get(cell, -1)) == owner_id:
+					owned += 1
 
-	if playable_count == 0:
+	if total == 0:
 		return 0.0
-
-	return float(owned_count) / float(playable_count) * 100.0
+	return float(owned) / float(total) * 100.0
 
 func _draw() -> void:
-	for cell in owned.keys():
+	for cell in owner_by_cell.keys():
+		var owner_id := int(owner_by_cell[cell])
+		var color: Color = colors.get(owner_id, Color.GRAY)
 		var center := cell_to_world(cell)
-		var rect := Rect2(
-			center - Vector2(CELL_SIZE, CELL_SIZE) * 0.5,
-			Vector2(CELL_SIZE + 1, CELL_SIZE + 1)
+		draw_rect(
+			Rect2(center - Vector2(CELL_SIZE, CELL_SIZE) * 0.5, Vector2(CELL_SIZE + 1, CELL_SIZE + 1)),
+			color.darkened(0.08)
 		)
-		draw_rect(rect, player_color)
