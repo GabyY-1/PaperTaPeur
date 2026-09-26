@@ -74,6 +74,12 @@ const bottomMissionsBtn = document.getElementById("bottomMissionsBtn");
 const bottomWorldBtn = document.getElementById("bottomWorldBtn");
 const gameProgressFill = document.getElementById("gameProgressFill");
 const gameProgressLabel = document.getElementById("gameProgressLabel");
+const modeSelector = document.getElementById("modeSelector");
+const modeLabel = document.getElementById("modeLabel");
+const playModeTitle = document.getElementById("playModeTitle");
+const playModeSubtitle = document.getElementById("playModeSubtitle");
+const modeHudName = document.getElementById("modeHudName");
+const modeHudDetail = document.getElementById("modeHudDetail");
 const accountEmail = document.getElementById("accountEmail");
 const accountPassword = document.getElementById("accountPassword");
 const signInBtn = document.getElementById("signInBtn");
@@ -146,6 +152,45 @@ let kills = 0;
 let playerPercent = 0;
 let toastTimer = 0;
 let leaderboardTimer = 0;
+let matchTimeLeft = null;
+
+const GAME_MODES = {
+  ranked: {
+    name: "CLASSÉ",
+    playTitle: "JOUER CLASSÉ",
+    subtitle: "8 joueurs · 1 couleur chacun · IA adaptée à ton rang",
+    timeLimit: null,
+    noRespawn: false,
+    conquestTarget: null
+  },
+  blitz: {
+    name: "BLITZ",
+    playTitle: "JOUER BLITZ",
+    subtitle: "3 minutes · le plus de territoire possible",
+    timeLimit: 180,
+    noRespawn: false,
+    conquestTarget: null
+  },
+  elimination: {
+    name: "ÉLIMINATION",
+    playTitle: "JOUER ÉLIMINATION",
+    subtitle: "1 seule vie · dernier survivant",
+    timeLimit: null,
+    noRespawn: true,
+    conquestTarget: null
+  },
+  conquest: {
+    name: "CONQUÊTE",
+    playTitle: "JOUER CONQUÊTE",
+    subtitle: "Premier joueur à 60% de territoire",
+    timeLimit: null,
+    noRespawn: false,
+    conquestTarget: 60
+  }
+};
+
+let selectedMode = localStorage.getItem("ptpMode") || "ranked";
+if (!GAME_MODES[selectedMode]) selectedMode = "ranked";
 
 const audio = { ctx: null };
 
@@ -519,6 +564,7 @@ function findSpawn(index) {
 
 function resetGame() {
   buildWorld();
+  matchTimeLeft = GAME_MODES[selectedMode].timeLimit;
 
   entities = [];
   particles = [];
@@ -614,7 +660,10 @@ function update(dt) {
   for (const entity of entities) {
     if (!entity.alive) {
       if (entity.isBot) {
-        if (playerPercent >= 80) {
+        const mode = GAME_MODES[selectedMode];
+        const respawnBlocked = mode.noRespawn || playerPercent >= 80;
+
+        if (respawnBlocked) {
           entity.respawn = Infinity;
         } else {
           entity.respawn -= dt;
@@ -644,6 +693,38 @@ function update(dt) {
   if (toastTimer > 0) {
     toastTimer -= dt;
     if (toastTimer <= 0) toastEl.classList.remove("show");
+  }
+
+  if (matchTimeLeft !== null) {
+    matchTimeLeft = Math.max(0, matchTimeLeft - dt);
+    if (matchTimeLeft <= 0) {
+      endGame();
+      return;
+    }
+  }
+
+  const mode = GAME_MODES[selectedMode];
+
+  if (mode.noRespawn) {
+    const alive = entities.filter((e) => e.alive);
+    if (alive.length <= 1 && player.alive) {
+      endGame();
+      return;
+    }
+  }
+
+  if (mode.conquestTarget) {
+    for (const entity of entities) {
+      if (!entity.alive) continue;
+      const percent = playableCells > 0
+        ? ((territoryCounts[entity.id] || 0) / playableCells) * 100
+        : 0;
+
+      if (percent >= mode.conquestTarget) {
+        endGame();
+        return;
+      }
+    }
   }
 
   leaderboardTimer -= dt;
@@ -1085,7 +1166,7 @@ function clearTerritory(id) {
 }
 
 function respawnBot(bot) {
-  if (playerPercent >= 80) {
+  if (GAME_MODES[selectedMode].noRespawn || playerPercent >= 80) {
     bot.alive = false;
     bot.respawn = Infinity;
     return;
@@ -1224,6 +1305,21 @@ function updateHud(updateLeaderboard) {
   territoryEl.textContent = playerPercent.toFixed(1) + "%";
   if (gameProgressFill) gameProgressFill.style.width = Math.max(0, Math.min(100, playerPercent)) + "%";
   if (gameProgressLabel) gameProgressLabel.textContent = Math.floor(playerPercent) + "%";
+
+  if (modeHudName) modeHudName.textContent = GAME_MODES[selectedMode].name;
+  if (modeHudDetail) {
+    if (matchTimeLeft !== null) {
+      const minutes = Math.floor(matchTimeLeft / 60);
+      const seconds = Math.floor(matchTimeLeft % 60).toString().padStart(2, "0");
+      modeHudDetail.textContent = minutes + ":" + seconds;
+    } else if (GAME_MODES[selectedMode].noRespawn) {
+      modeHudDetail.textContent = entities.filter((e) => e.alive).length + " survivants";
+    } else if (GAME_MODES[selectedMode].conquestTarget) {
+      modeHudDetail.textContent = "Objectif " + GAME_MODES[selectedMode].conquestTarget + "%";
+    } else {
+      modeHudDetail.textContent = "8 joueurs";
+    }
+  }
   killsEl.textContent = kills;
   coinsEl.textContent = totalCoins + currentEarned;
 
@@ -2096,3 +2192,32 @@ if (bottomMissionsBtn) {
 if (bottomWorldBtn) {
   bottomWorldBtn.onclick = () => openRankPanel();
 }
+
+
+function updateModeSelectionUI() {
+  const mode = GAME_MODES[selectedMode];
+  if (!mode) return;
+
+  if (modeLabel) modeLabel.textContent = "MODE " + mode.name;
+  if (playModeTitle) playModeTitle.textContent = mode.playTitle;
+  if (playModeSubtitle) playModeSubtitle.textContent = mode.subtitle;
+
+  if (modeSelector) {
+    modeSelector.querySelectorAll(".mode-option").forEach((button) => {
+      button.classList.toggle("active", button.dataset.mode === selectedMode);
+    });
+  }
+}
+
+if (modeSelector) {
+  modeSelector.addEventListener("click", (event) => {
+    const button = event.target.closest(".mode-option");
+    if (!button || !GAME_MODES[button.dataset.mode]) return;
+
+    selectedMode = button.dataset.mode;
+    localStorage.setItem("ptpMode", selectedMode);
+    updateModeSelectionUI();
+  });
+}
+
+updateModeSelectionUI();
