@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-ultragame1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-one-screen-nav1">
 </head>
 <body>
 <main id="app">
@@ -50,7 +50,7 @@
       </div>
     </header>
 
-    <div class="competitive-layout">
+    <div class="competitive-layout home-dashboard">
       <section class="left-column">
         <div class="rank-card-main">
           <div class="rank-card-head">
@@ -209,7 +209,32 @@
       </section>
     </div>
 
-    
+    <nav class="game-bottom-nav" aria-label="Menu principal">
+      <button id="bottomHomeMenuBtn" class="bottom-nav-item active" type="button">
+        <span class="bottom-nav-icon home-icon"></span>
+        <strong>ACCUEIL</strong>
+      </button>
+
+      <button id="bottomSkinMenuBtn" class="bottom-nav-item" type="button">
+        <span class="bottom-nav-icon skin-icon"></span>
+        <strong>SKINS</strong>
+      </button>
+
+      <button id="bottomPlayMenuBtn" class="bottom-nav-play" type="button">
+        <span class="bottom-play-arrow">▶</span>
+        <span>JOUER</span>
+      </button>
+
+      <button id="bottomMultiMenuBtn" class="bottom-nav-item" type="button">
+        <span class="bottom-nav-icon multi-icon"><i></i><i></i></span>
+        <strong>MULTI</strong>
+      </button>
+
+      <button id="bottomProfileMenuBtn" class="bottom-nav-item" type="button">
+        <span class="bottom-nav-icon profile-icon"></span>
+        <strong>PROFIL</strong>
+      </button>
+    </nav>
 
     <div class="hidden">
       <button id="soundBtn"></button>
