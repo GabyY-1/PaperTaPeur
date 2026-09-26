@@ -265,12 +265,19 @@ function initPalette() {
     button.style.background = color;
     button.setAttribute("aria-label", "Choisir cette couleur");
 
-    button.onclick = () => {
+    button.onclick = async () => {
       selectedColor = color;
       localStorage.setItem("ptpColor", color);
       updatePreviewColor();
       initPalette();
-      tone(640, 0.04, "square", 0.018);
+
+      try {
+        if (window.PTPCloud && await window.PTPCloud.session()) {
+          await window.PTPCloud.saveProfile(profile, selectedColor, totalCoins);
+        }
+      } catch (error) {
+        console.error(error);
+      }
     };
 
     colorPicker.appendChild(button);
