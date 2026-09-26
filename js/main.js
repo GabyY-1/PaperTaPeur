@@ -1385,6 +1385,7 @@ function endGame() {
   if (!running) return;
 
   running = false;
+  multiplayer.matchActive = false;
   dangerText.classList.remove("show");
 
   const earned = currentEarned + Math.floor(playerPercent * 0.6);
@@ -1894,7 +1895,14 @@ menuBtn.onclick = () => {
 
 quitBtn.onclick = () => {
   running = false;
-  show(menu);
+
+  if (multiplayer.inRoom) {
+    multiplayer.matchActive = false;
+    renderMultiplayerLobby();
+    show(multiplayerModal);
+  } else {
+    show(menu);
+  }
 };
 
 skinsBtn.onclick = () => openSkinsPanel();
@@ -2478,7 +2486,7 @@ function createRoomCode() {
 function multiplayerPresencePayload() {
   return {
     id: multiplayer.clientId,
-    name: (profile.name || nameInput.value || "Player").slice(0, 14),
+    name: (nameInput.value.trim() || profile.name || "Player").slice(0, 14),
     color: selectedColor,
     host: multiplayer.isHost,
     joinedAt: Date.now(),
