@@ -8,18 +8,30 @@
     window.navigator.standalone === true;
 
   const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const platform = standalone ? "APP INSTALLÉE" : mobile ? "TÉLÉPHONE" : "ORDINATEUR";
-
-  if (platformLabel) platformLabel.textContent = platform;
+  if (platformLabel) platformLabel.textContent = standalone ? "APP INSTALLÉE" : mobile ? "TÉLÉPHONE" : "ORDINATEUR";
 
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(console.error);
+    window.addEventListener("load", async () => {
+      try {
+        // On mobile browser, remove stale workers first to avoid frozen old builds.
+        if (mobile && !standalone) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(reg => reg.unregister()));
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.filter(k => k.startsWith("papertapeur-")).map(k => caches.delete(k)));
+          }
+          return;
+        }
+
+        await navigator.serviceWorker.register("./sw.js?v=3");
+      } catch (error) {
+        console.warn("Service worker disabled:", error);
+      }
     });
   }
 
   if (!installBtn) return;
-
   if (standalone) {
     installBtn.classList.add("hidden");
     return;
@@ -40,22 +52,15 @@
       return;
     }
 
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isIOS) {
-      alert("Sur iPhone/iPad : ouvre le menu Partager de Safari puis choisis « Sur l’écran d’accueil ».");
+    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      alert("Sur iPhone/iPad : menu Partager de Safari → Sur l’écran d’accueil.");
     } else {
-      alert("Dans Chrome ou Edge, ouvre le menu du navigateur puis choisis « Installer PaperTaPeur » ou « Installer l'application ».");
+      alert("Dans Chrome/Edge : menu du navigateur → Installer PaperTaPeur.");
     }
-  });
-
-  window.addEventListener("appinstalled", () => {
-    installBtn.classList.add("hidden");
   });
 
   const params = new URLSearchParams(location.search);
   if (params.get("open") === "multiplayer") {
-    window.addEventListener("load", () => {
-      document.getElementById("openMultiplayerBtn")?.click();
-    });
+    window.addEventListener("load", () => document.getElementById("openMultiplayerBtn")?.click());
   }
 })();
