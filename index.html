@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-one-screen-nav1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-one-screen-nav2">
 </head>
 <body>
 <main id="app">
@@ -210,27 +210,27 @@
     </div>
 
     <nav class="game-bottom-nav" aria-label="Menu principal">
-      <button id="bottomHomeMenuBtn" class="bottom-nav-item active" type="button">
+      <button id="bottomHomeMenuBtn" class="bottom-nav-item active" type="button" data-bottom-action="home">
         <span class="bottom-nav-icon home-icon"></span>
         <strong>ACCUEIL</strong>
       </button>
 
-      <button id="bottomSkinMenuBtn" class="bottom-nav-item" type="button">
+      <button id="bottomSkinMenuBtn" class="bottom-nav-item" type="button" data-bottom-action="skins">
         <span class="bottom-nav-icon skin-icon"></span>
         <strong>SKINS</strong>
       </button>
 
-      <button id="bottomPlayMenuBtn" class="bottom-nav-play" type="button">
+      <button id="bottomPlayMenuBtn" class="bottom-nav-play" type="button" data-bottom-action="play">
         <span class="bottom-play-arrow">▶</span>
         <span>JOUER</span>
       </button>
 
-      <button id="bottomMultiMenuBtn" class="bottom-nav-item" type="button">
+      <button id="bottomMultiMenuBtn" class="bottom-nav-item" type="button" data-bottom-action="multi">
         <span class="bottom-nav-icon multi-icon"><i></i><i></i></span>
         <strong>MULTI</strong>
       </button>
 
-      <button id="bottomProfileMenuBtn" class="bottom-nav-item" type="button">
+      <button id="bottomProfileMenuBtn" class="bottom-nav-item" type="button" data-bottom-action="profile">
         <span class="bottom-nav-icon profile-icon"></span>
         <strong>PROFIL</strong>
       </button>
@@ -461,7 +461,7 @@
 </main>
 
 <script src="js/profile.js?v=20260926-mobilefix1"></script>
-<script src="js/main.js?v=20260926-mobilefix3"></script>
+<script src="js/main.js?v=20260926-navfix2"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
