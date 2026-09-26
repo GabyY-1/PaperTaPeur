@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="./css/style.css?v=20260926-leaderboards2">
+  <link rel="stylesheet" href="./css/style.css?v=20260926-generalboard1">
 </head>
 <body>
 <main id="app">
@@ -262,7 +262,8 @@
 
     <div class="hub-content leaderboard-page-content">
       <div class="leaderboard-tabs" id="leaderboardTabs">
-        <button class="active" data-board-scope="global" data-board-metric="rank_points">RP</button>
+        <button class="active" data-board-scope="global" data-board-metric="general">GÉNÉRAL</button>
+        <button data-board-scope="global" data-board-metric="rank_points">RP</button>
         <button data-board-scope="global" data-board-metric="best_territory">TERRITOIRE</button>
         <button data-board-scope="global" data-board-metric="total_kills">KILLS</button>
         <button data-board-scope="global" data-board-metric="level">NIVEAU</button>
@@ -283,7 +284,7 @@
         <div class="leaderboard-page-head">
           <div>
             <small id="leaderboardPageKicker">GLOBAL</small>
-            <strong id="leaderboardPageTitle">Classement RP</strong>
+            <strong id="leaderboardPageTitle">Classement général</strong>
           </div>
           <span id="leaderboardPageState">CHARGEMENT…</span>
         </div>
@@ -698,7 +699,7 @@
 </main>
 
 <script src="js/profile.js?v=20260926-subranks1"></script>
-<script src="js/main.js?v=20260926-leaderboards2"></script>
+<script src="js/main.js?v=20260926-generalboard1"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
@@ -706,7 +707,7 @@
   supabaseScript.async = true;
   supabaseScript.onload = () => {
     const cloudScript = document.createElement("script");
-    cloudScript.src = "js/cloud.js?v=20260926-leaderboards2";
+    cloudScript.src = "js/cloud.js?v=20260926-generalboard1";
     cloudScript.onload = () => window.dispatchEvent(new Event("PTPCloudReady"));
     document.body.appendChild(cloudScript);
   };
