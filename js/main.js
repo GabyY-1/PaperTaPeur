@@ -8,6 +8,7 @@ const game = document.getElementById("game");
 const gameover = document.getElementById("gameover");
 const accountModal = document.getElementById("accountModal");
 const infoModal = document.getElementById("infoModal");
+const panelModal = document.getElementById("panelModal");
 
 const playBtn = document.getElementById("playBtn");
 const retryBtn = document.getElementById("retryBtn");
@@ -23,6 +24,7 @@ const rankInfoBtn = document.getElementById("rankInfoBtn");
 const closeAccountBtn = document.getElementById("closeAccountBtn");
 const saveAccountBtn = document.getElementById("saveAccountBtn");
 const closeInfoBtn = document.getElementById("closeInfoBtn");
+const panelCloseBtn = document.getElementById("panelCloseBtn");
 
 const nameInput = document.getElementById("playerName");
 const colorPicker = document.getElementById("colorPicker");
@@ -58,6 +60,11 @@ const finalRank = document.getElementById("finalRank");
 const rankDeltaEl = document.getElementById("rankDelta");
 const infoTitle = document.getElementById("infoTitle");
 const infoBody = document.getElementById("infoBody");
+const panelTitle = document.getElementById("panelTitle");
+const panelBody = document.getElementById("panelBody");
+const topLevel = document.getElementById("topLevel");
+const accountRankName = document.getElementById("accountRankName");
+const accountProfileName = document.getElementById("accountProfileName");
 
 const TAU = Math.PI * 2;
 
@@ -142,7 +149,7 @@ addEventListener("resize", resize);
 resize();
 
 function show(screenEl) {
-  [menu, game, gameover, accountModal, infoModal].forEach((s) => s.classList.remove("active"));
+  [menu, game, gameover, accountModal, infoModal, panelModal].forEach((s) => s.classList.remove("active"));
   screenEl.classList.add("active");
 }
 
@@ -172,6 +179,8 @@ function initPalette() {
 function updatePreviewColor() {
   previewPaper.style.background = selectedColor;
   gameoverPaper.style.background = selectedColor;
+  avatarMini.style.background = selectedColor;
+  accountAvatar.style.background = selectedColor;
 }
 
 function updateMenuStats() {
@@ -184,9 +193,12 @@ function updateMenuStats() {
   soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
 
   accountNameEl.textContent = profile.name || "Player";
+  accountProfileName.textContent = profile.name || "Player";
   nameInput.value = profile.name || nameInput.value || "Player";
   avatarMini.style.background = selectedColor;
   accountAvatar.style.background = selectedColor;
+  topLevel.textContent = profile.level;
+  accountRankName.textContent = rank.name;
 
   rankBadge.textContent = rank.name.charAt(0).toUpperCase();
   rankBadge.style.background = rank.color;
@@ -1450,9 +1462,7 @@ quitBtn.onclick = () => {
   show(menu);
 };
 
-skinsBtn.onclick = () => {
-  colorPicker.classList.toggle("hidden");
-};
+skinsBtn.onclick = () => openSkinsPanel();
 
 soundBtn.onclick = () => {
   soundEnabled = !soundEnabled;
@@ -1479,6 +1489,12 @@ settingsBtn.onclick = () => {
   profile.name = "Player";
   window.PTPProfile.save(profile);
 
+  uiState = { unlockedColors: [COLORS[0]], claimedMissions: {}, dailyRewardDate: "" };
+  saveUiState(uiState);
+  selectedColor = COLORS[0];
+  localStorage.setItem("ptpColor", selectedColor);
+  updatePreviewColor();
+  initPalette();
   updateMenuStats();
 };
 
@@ -1517,31 +1533,237 @@ function openInfo(title, html) {
 
 closeInfoBtn.onclick = () => show(menu);
 
-rankInfoBtn.onclick = () => {
-  const rank = window.PTPProfile.getRank(profile.rankPoints);
-  openInfo(
-    "RANG " + rank.name.toUpperCase(),
-    "<strong>" + profile.rankPoints + " RP</strong><br>" +
-    "Plus ton rang monte, plus les bots réagissent vite, visent mieux les traces, prennent moins de décisions au hasard et rentrent plus intelligemment dans leur territoire.<br><br>" +
-    "Difficulté IA actuelle : <strong>" + Math.round(botDifficulty * 100) + "%</strong>."
-  );
+
+const UI_STATE_KEY = "ptpUiStateV2";
+
+function loadUiState() {
+  try {
+    return {
+      unlockedColors: [COLORS[0]],
+      claimedMissions: {},
+      dailyRewardDate: "",
+      ...JSON.parse(localStorage.getItem(UI_STATE_KEY) || "{}")
+    };
+  } catch {
+    return { unlockedColors: [COLORS[0]], claimedMissions: {}, dailyRewardDate: "" };
+  }
+}
+
+function saveUiState(state) {
+  localStorage.setItem(UI_STATE_KEY, JSON.stringify(state));
+}
+
+let uiState = loadUiState();
+
+function openPanel(title, html) {
+  panelTitle.textContent = title;
+  panelBody.innerHTML = html;
+  show(panelModal);
+}
+
+panelCloseBtn.onclick = () => {
+  updateMenuStats();
+  show(menu);
 };
 
-missionsBtn.onclick = () => {
-  openInfo(
-    "MISSIONS",
-    "<strong>Objectifs de partie</strong><br>" +
-    "• Capturer 5% de territoire<br>" +
-    "• Éliminer 2 adversaires<br>" +
-    "• Ramasser 10 pièces<br><br>" +
-    "Le vrai système de missions et récompenses sera relié au profil dans une prochaine version."
-  );
-};
+function openSkinsPanel() {
+  const cards = COLORS.map((color, index) => {
+    const unlocked = uiState.unlockedColors.includes(color);
+    const selected = color === selectedColor;
+    const price = index === 0 ? 0 : 80 + index * 70;
 
-rewardsBtn.onclick = () => {
-  openInfo(
-    "RÉCOMPENSES",
-    "<strong>Progression</strong><br>" +
-    "Les pièces gagnées et ton rang sont déjà sauvegardés. Les coffres, skins déblocables et récompenses de niveau pourront être ajoutés ici."
-  );
-};
+    return `
+      <button class="skin-card ${selected ? "selected" : ""} ${unlocked ? "" : "locked"}"
+              data-skin-color="${color}" data-skin-price="${price}">
+        <div class="skin-swatch" style="background:${color}"></div>
+        <small>${selected ? "ÉQUIPÉ" : unlocked ? "UTILISER" : "DÉBLOQUER"}</small>
+        ${unlocked ? "" : '<div class="skin-price">● ' + price + '</div>'}
+      </button>
+    `;
+  }).join("");
+
+  openPanel("SKINS", `
+    <div class="panel-row">
+      <div class="copy">
+        <strong>Collection</strong>
+        <small>Choisis ta couleur de Paper.</small>
+      </div>
+      <b>● ${totalCoins}</b>
+    </div>
+    <div class="skin-grid">${cards}</div>
+  `);
+
+  panelBody.querySelectorAll("[data-skin-color]").forEach((button) => {
+    button.onclick = () => {
+      const color = button.dataset.skinColor;
+      const price = Number(button.dataset.skinPrice || 0);
+      const unlocked = uiState.unlockedColors.includes(color);
+
+      if (!unlocked) {
+        if (totalCoins < price) {
+          toast("Pas assez de pièces");
+          return;
+        }
+
+        totalCoins -= price;
+        profile.coins = totalCoins;
+        uiState.unlockedColors.push(color);
+        saveUiState(uiState);
+        localStorage.setItem("ptpCoins", String(totalCoins));
+        window.PTPProfile.save(profile);
+        tone(760, 0.08, "triangle", 0.025);
+      }
+
+      selectedColor = color;
+      localStorage.setItem("ptpColor", color);
+      updatePreviewColor();
+      initPalette();
+      updateMenuStats();
+      openSkinsPanel();
+    };
+  });
+}
+
+const MISSION_DEFS = [
+  {
+    id: "games_3",
+    title: "Jouer 3 parties",
+    value: () => profile.games,
+    target: 3,
+    reward: 80
+  },
+  {
+    id: "kills_5",
+    title: "Faire 5 éliminations",
+    value: () => profile.totalKills,
+    target: 5,
+    reward: 120
+  },
+  {
+    id: "territory_10",
+    title: "Atteindre 10% de territoire",
+    value: () => profile.bestTerritory,
+    target: 10,
+    reward: 150
+  }
+];
+
+function openMissionsPanel() {
+  const rows = MISSION_DEFS.map((mission) => {
+    const value = Math.min(mission.target, mission.value());
+    const progress = Math.round((value / mission.target) * 100);
+    const completed = value >= mission.target;
+    const claimed = Boolean(uiState.claimedMissions[mission.id]);
+
+    return `
+      <div class="panel-row">
+        <div class="copy">
+          <strong>${mission.title}</strong>
+          <small>${Math.floor(value)} / ${mission.target} · récompense ${mission.reward} pièces</small>
+          <div class="progress-small"><span style="width:${progress}%"></span></div>
+        </div>
+        <button class="panel-action" data-mission="${mission.id}"
+          ${(!completed || claimed) ? "disabled" : ""}>
+          ${claimed ? "RÉCUPÉRÉ" : completed ? "RÉCUPÉRER" : progress + "%"}
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  openPanel("MISSIONS", rows);
+
+  panelBody.querySelectorAll("[data-mission]").forEach((button) => {
+    button.onclick = () => {
+      const mission = MISSION_DEFS.find((m) => m.id === button.dataset.mission);
+      if (!mission) return;
+      if (mission.value() < mission.target) return;
+      if (uiState.claimedMissions[mission.id]) return;
+
+      uiState.claimedMissions[mission.id] = true;
+      totalCoins += mission.reward;
+      profile.coins = totalCoins;
+
+      saveUiState(uiState);
+      localStorage.setItem("ptpCoins", String(totalCoins));
+      window.PTPProfile.save(profile);
+
+      tone(880, 0.09, "triangle", 0.03);
+      updateMenuStats();
+      openMissionsPanel();
+    };
+  });
+}
+
+function localDateKey() {
+  const now = new Date();
+  return now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+}
+
+function openRewardsPanel() {
+  const today = localDateKey();
+  const claimedToday = uiState.dailyRewardDate === today;
+
+  openPanel("CADEAU QUOTIDIEN", `
+    <div class="reward-hero">
+      <div class="gift">◆</div>
+      <strong>${claimedToday ? "Récompense récupérée" : "100 PIÈCES"}</strong>
+      <small>${claimedToday ? "Reviens demain pour un nouveau cadeau." : "Disponible aujourd’hui."}</small>
+    </div>
+    <button id="claimDailyBtn" class="modal-primary" ${claimedToday ? "disabled" : ""}>
+      ${claimedToday ? "DÉJÀ RÉCUPÉRÉ" : "RÉCUPÉRER +100"}
+    </button>
+  `);
+
+  const claim = document.getElementById("claimDailyBtn");
+  if (claim && !claimedToday) {
+    claim.onclick = () => {
+      uiState.dailyRewardDate = today;
+      totalCoins += 100;
+      profile.coins = totalCoins;
+
+      saveUiState(uiState);
+      localStorage.setItem("ptpCoins", String(totalCoins));
+      window.PTPProfile.save(profile);
+
+      tone(930, 0.12, "triangle", 0.035);
+      updateMenuStats();
+      openRewardsPanel();
+    };
+  }
+}
+
+function openRankPanel() {
+  const currentRank = window.PTPProfile.getRank(profile.rankPoints);
+
+  const ranks = window.PTPProfile.RANKS.map((rank) => {
+    const current = rank.name === currentRank.name;
+
+    return `
+      <div class="rank-item" ${current ? 'style="outline:3px solid #668cff"' : ""}>
+        <div class="rank-dot" style="background:${rank.color}">${rank.name.charAt(0)}</div>
+        <strong>${rank.name}</strong>
+        <span>${rank.min} RP</span>
+      </div>
+    `;
+  }).join("");
+
+  openPanel("RANGS", `
+    <div class="panel-row">
+      <div class="copy">
+        <strong>${currentRank.name} · ${profile.rankPoints} RP</strong>
+        <small>Difficulté IA actuelle : ${Math.round(botDifficulty * 100)}%</small>
+      </div>
+    </div>
+    <div class="rank-list">${ranks}</div>
+    <div class="panel-row">
+      <div class="copy">
+        <strong>IA adaptative</strong>
+        <small>Les bots réagissent plus vite, visent mieux les traces et prennent de meilleures décisions quand ton rang augmente.</small>
+      </div>
+    </div>
+  `);
+}
+
+rankInfoBtn.onclick = () => openRankPanel();
+missionsBtn.onclick = () => openMissionsPanel();
+rewardsBtn.onclick = () => openRewardsPanel();
