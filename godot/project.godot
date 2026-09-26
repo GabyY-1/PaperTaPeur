@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="PaperTaPeur"
-config/description="PaperTaPeur - jeu territorial arcade"
+config/description="PaperTaPeur - V1 PC"
 run/main_scene="res://Main.tscn"
 
 [display]
@@ -15,26 +15,3 @@ window/stretch/mode="canvas_items"
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/default_filters/use_nearest_mipmap_filter=false
-
-[input]
-move_up={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":90), Object(InputEventKey,"physical_keycode":87), Object(InputEventKey,"physical_keycode":4194320)]
-}
-move_down={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":83), Object(InputEventKey,"physical_keycode":4194322)]
-}
-move_left={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":81), Object(InputEventKey,"physical_keycode":65), Object(InputEventKey,"physical_keycode":4194319)]
-}
-move_right={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":68), Object(InputEventKey,"physical_keycode":4194321)]
-}
-pause={
-"deadzone": 0.5,
-"events": [Object(InputEventKey,"physical_keycode":4194305)]
-}
