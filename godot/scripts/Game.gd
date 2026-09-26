@@ -6,32 +6,32 @@ const TerritoryScript = preload("res://scripts/Territory.gd")
 const PlayerScript = preload("res://scripts/Player.gd")
 const BotScript = preload("res://scripts/Bot.gd")
 
-const WORLD_RADIUS := 1100.0
-const BOT_COUNT := 6
-const COIN_COUNT := 45
+const WORLD_RADIUS = 1100.0
+const BOT_COUNT = 6
+const COIN_COUNT = 45
 
-var player_name := "Player"
-var player_color := Color("#ffd84d")
+var player_name = "Player"
+var player_color = Color("#ffd84d")
 
-var territory: Node2D
-var player: Node2D
-var bots: Array[Node2D] = []
-var coins: Array[Vector2] = []
+var territory = null
+var player = null
+var bots = []
+var coins = []
 
-var hud: CanvasLayer
-var territory_label: Label
-var stats_label: Label
-var leaderboard_label: Label
-var pause_label: Label
+var hud = null
+var territory_label = null
+var stats_label = null
+var leaderboard_label = null
+var pause_label = null
 
-var score := 0
-var kills := 0
-var coins_collected := 0
-var max_percent := 0.0
-var game_time := 0.0
-var ended := false
+var score = 0
+var kills = 0
+var coins_collected = 0
+var max_percent = 0.0
+var game_time = 0.0
+var ended = false
 
-var bot_colors := [
+var bot_colors = [
 	Color("#55a7ff"),
 	Color("#ff637b"),
 	Color("#67dc9a"),
@@ -41,7 +41,7 @@ var bot_colors := [
 	Color("#f062c0")
 ]
 
-func _ready() -> void:
+func _ready():
 	process_mode = Node.PROCESS_MODE_PAUSABLE
 	_build_world()
 	_build_hud()
@@ -50,31 +50,30 @@ func _ready() -> void:
 	_spawn_coins()
 	queue_redraw()
 
-func _build_world() -> void:
+func _build_world():
 	territory = TerritoryScript.new()
 	add_child(territory)
 	territory.setup(WORLD_RADIUS)
 
-func _spawn_player() -> void:
+func _spawn_player():
 	player = PlayerScript.new()
-	player.owner_id = 0
 	player.world_radius = WORLD_RADIUS
 	add_child(player)
 	player.setup(territory, 0, player_color, Vector2.ZERO, player_name)
 	player.captured.connect(_on_agent_captured)
 	player.eliminated.connect(_on_agent_eliminated)
 
-	var camera := Camera2D.new()
+	var camera = Camera2D.new()
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 7.0
 	player.add_child(camera)
 
-func _spawn_bots() -> void:
+func _spawn_bots():
 	for i in range(BOT_COUNT):
-		var bot := BotScript.new()
-		var owner_id := i + 1
-		var angle := TAU * float(i) / float(BOT_COUNT)
-		var start := Vector2.from_angle(angle) * randf_range(440.0, 760.0)
+		var bot = BotScript.new()
+		var owner_id = i + 1
+		var angle = TAU * float(i) / float(BOT_COUNT)
+		var start = Vector2.from_angle(angle) * randf_range(440.0, 760.0)
 		add_child(bot)
 		bot.setup(territory, owner_id, bot_colors[i % bot_colors.size()], start, "Bot %d" % (i + 1))
 		bot.configure_personality()
@@ -82,12 +81,12 @@ func _spawn_bots() -> void:
 		bot.eliminated.connect(_on_agent_eliminated)
 		bots.append(bot)
 
-func _spawn_coins() -> void:
+func _spawn_coins():
 	coins.clear()
 	for i in range(COIN_COUNT):
 		coins.append(_random_map_point(130.0))
 
-func _process(delta: float) -> void:
+func _process(delta):
 	if ended:
 		return
 
@@ -98,8 +97,8 @@ func _process(delta: float) -> void:
 	_update_hud()
 	queue_redraw()
 
-func _check_trail_collisions() -> void:
-	var agents: Array[Node2D] = [player]
+func _check_trail_collisions():
+	var agents = [player]
 	for bot in bots:
 		agents.append(bot)
 
@@ -108,14 +107,15 @@ func _check_trail_collisions() -> void:
 			continue
 
 		for victim in agents:
-			if attacker == victim or not is_instance_valid(victim) or not victim.alive:
+			if attacker == victim:
 				continue
-
+			if not is_instance_valid(victim) or not victim.alive:
+				continue
 			if victim.hits_trail(attacker.position):
 				victim.die(attacker.owner_id)
 
-func _collect_coins() -> void:
-	if not player.alive:
+func _collect_coins():
+	if player == null or not player.alive:
 		return
 
 	for i in range(coins.size() - 1, -1, -1):
@@ -125,16 +125,17 @@ func _collect_coins() -> void:
 			score += 35
 			coins.append(_random_map_point(130.0))
 
-func _update_stats() -> void:
-	var percent := territory.get_percent(0)
+func _update_stats():
+	var percent = territory.get_percent(0)
 	max_percent = max(max_percent, percent)
-	score = max(score, int(game_time * 3.0 + max_percent * 160.0 + kills * 500.0 + coins_collected * 35.0))
+	var calculated = int(game_time * 3.0 + max_percent * 160.0 + kills * 500.0 + coins_collected * 35.0)
+	score = max(score, calculated)
 
-func _on_agent_captured(agent: Node2D, gained: int) -> void:
+func _on_agent_captured(agent, gained):
 	if agent.owner_id == 0:
 		score += gained * 2
 
-func _on_agent_eliminated(agent: Node2D, killer_id: int) -> void:
+func _on_agent_eliminated(agent, killer_id):
 	if agent.owner_id == 0:
 		if ended:
 			return
@@ -146,25 +147,23 @@ func _on_agent_eliminated(agent: Node2D, killer_id: int) -> void:
 		kills += 1
 		score += 500
 
-	var timer := get_tree().create_timer(randf_range(1.2, 2.4))
-	timer.timeout.connect(func():
-		if is_instance_valid(agent) and not ended:
-			agent.respawn(_find_spawn_point())
-	)
+	await get_tree().create_timer(randf_range(1.2, 2.4)).timeout
+	if is_instance_valid(agent) and not ended:
+		agent.respawn(_find_spawn_point())
 
-func _find_spawn_point() -> Vector2:
+func _find_spawn_point():
 	for attempt in range(20):
-		var p := _random_map_point(220.0)
+		var p = _random_map_point(220.0)
 		if territory.get_owner_world(p) == -1:
 			return p
 	return _random_map_point(220.0)
 
-func _random_map_point(margin: float) -> Vector2:
-	var a := randf() * TAU
-	var r := sqrt(randf()) * (WORLD_RADIUS - margin)
+func _random_map_point(margin):
+	var a = randf() * TAU
+	var r = sqrt(randf()) * (WORLD_RADIUS - margin)
 	return Vector2.from_angle(a) * r
 
-func _build_hud() -> void:
+func _build_hud():
 	hud = CanvasLayer.new()
 	add_child(hud)
 
@@ -192,31 +191,41 @@ func _build_hud() -> void:
 	pause_label.modulate = Color(1, 1, 1, 0.55)
 	hud.add_child(pause_label)
 
-func _update_hud() -> void:
-	var percent := territory.get_percent(0)
+func _update_hud():
+	var percent = territory.get_percent(0)
 	territory_label.text = "Territoire : %.1f%%" % percent
 	stats_label.text = "Score %d   •   Kills %d   •   Pièces %d" % [score, kills, coins_collected]
 
-	var ranking: Array[Dictionary] = []
+	var ranking = []
 	ranking.append({"name": player_name, "percent": percent})
 
 	for bot in bots:
 		if is_instance_valid(bot):
 			ranking.append({"name": bot.display_name, "percent": territory.get_percent(bot.owner_id)})
 
-	ranking.sort_custom(func(a, b): return float(a["percent"]) > float(b["percent"]))
+	_sort_ranking(ranking)
 
-	var text := "CLASSEMENT\n"
-	for i in range(min(5, ranking.size())):
-		text += "%d. %s — %.1f%%\n" % [i + 1, ranking[i]["name"], ranking[i]["percent"]]
-	leaderboard_label.text = text
+	var board_text = "CLASSEMENT\n"
+	var count = min(5, ranking.size())
+	for i in range(count):
+		board_text += "%d. %s — %.1f%%\n" % [i + 1, ranking[i]["name"], ranking[i]["percent"]]
+	leaderboard_label.text = board_text
 
-func _draw() -> void:
+func _sort_ranking(ranking):
+	for i in range(ranking.size()):
+		for j in range(i + 1, ranking.size()):
+			if float(ranking[j]["percent"]) > float(ranking[i]["percent"]):
+				var temp = ranking[i]
+				ranking[i] = ranking[j]
+				ranking[j] = temp
+
+func _draw():
 	draw_circle(Vector2.ZERO, WORLD_RADIUS + 18.0, Color("#111820"))
 	draw_circle(Vector2.ZERO, WORLD_RADIUS, Color("#e7ecef"))
 
-	var grid_color := Color(0.2, 0.25, 0.3, 0.06)
-	var step := 110
+	var grid_color = Color(0.2, 0.25, 0.3, 0.06)
+	var step = 110
+
 	for x in range(-1000, 1001, step):
 		draw_line(Vector2(x, -1000), Vector2(x, 1000), grid_color, 1.0)
 	for y in range(-1000, 1001, step):
