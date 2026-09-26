@@ -120,6 +120,8 @@ const guestLobbyWaiting = document.getElementById("guestLobbyWaiting");
 const syncLobbySettingsBtn = document.getElementById("syncLobbySettingsBtn");
 const startLobbyGameBtn = document.getElementById("startLobbyGameBtn");
 const leaveRoomBtn = document.getElementById("leaveRoomBtn");
+const lobbyModeSelect = document.getElementById("lobbyModeSelect");
+const lobbyMapSelect = document.getElementById("lobbyMapSelect");
 
 const TAU = Math.PI * 2;
 
@@ -255,6 +257,20 @@ const MAPS = {
 let selectedMap = localStorage.getItem("ptpMap") || "arena";
 if (!MAPS[selectedMap]) selectedMap = "arena";
 
+const multiplayer = {
+  clientId: sessionStorage.getItem("ptpClientId") || (crypto.randomUUID ? crypto.randomUUID() : "ptp_" + Date.now() + "_" + Math.random().toString(36).slice(2)),
+  channel: null,
+  roomCode: "",
+  inRoom: false,
+  isHost: false,
+  hostId: null,
+  roster: [],
+  settings: { mode: selectedMode, map: selectedMap },
+  matchActive: false,
+  lastStateSent: 0
+};
+sessionStorage.setItem("ptpClientId", multiplayer.clientId);
+
 const audio = { ctx: null };
 
 function resize() {
@@ -296,6 +312,9 @@ function initPalette() {
       try {
         if (window.PTPCloud && await window.PTPCloud.session()) {
           await window.PTPCloud.saveProfile(profile, selectedColor, totalCoins);
+        }
+        if (multiplayer.inRoom) {
+          await trackMultiplayerPresence();
         }
       } catch (error) {
         console.error(error);
@@ -818,6 +837,10 @@ function update(dt) {
     }
   }
 
+  if (multiplayer.matchActive) {
+    broadcastMultiplayerState();
+  }
+
   leaderboardTimer -= dt;
   updateHud(leaderboardTimer <= 0);
 
@@ -1048,6 +1071,7 @@ function appendTrail(entity) {
 
 function captureTerritory(entity) {
   const before = territoryCounts[entity.id] || 0;
+  const changedCells = [];
 
   const wall = new Uint8Array(ownerGrid.length);
 
@@ -1117,6 +1141,7 @@ function captureTerritory(entity) {
     if (!playableMask[i]) continue;
 
     if (wall[i] || !reachable[i]) {
+      if (ownerGrid[i] !== entity.id) changedCells.push(i);
       ownerGrid[i] = entity.id;
     }
   }
@@ -1136,6 +1161,10 @@ function captureTerritory(entity) {
       }
 
       tone(690, 0.08, "triangle", 0.03);
+
+      if (multiplayer.matchActive && changedCells.length) {
+        broadcastCapturedCells(changedCells);
+      }
     }
   }
 }
@@ -1193,11 +1222,22 @@ function resolveBodyCollisions() {
   }
 }
 
-function killEntity(victim, killer) {
+function killEntity(victim, killer, fromNetwork = false) {
   if (!victim.alive) return;
 
   victim.alive = false;
   burst(victim.x, victim.y, victim.color, 34);
+
+  if (multiplayer.matchActive && !fromNetwork && victim.clientId) {
+    multiplayer.channel?.send({
+      type: "broadcast",
+      event: "kill",
+      payload: {
+        victimClientId: victim.clientId,
+        killerClientId: killer?.clientId || null
+      }
+    });
+  }
 
   let stolenCells = 0;
 
@@ -2422,3 +2462,486 @@ if (modeSelector) {
 
 updateMapSelectionUI();
 loadMapLeaderboard();
+
+
+function cleanRoomCode(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+}
+
+function createRoomCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function multiplayerPresencePayload() {
+  return {
+    id: multiplayer.clientId,
+    name: (profile.name || nameInput.value || "Player").slice(0, 14),
+    color: selectedColor,
+    host: multiplayer.isHost,
+    joinedAt: Date.now(),
+    mode: multiplayer.settings.mode,
+    map: multiplayer.settings.map
+  };
+}
+
+async function trackMultiplayerPresence() {
+  if (!multiplayer.channel || !multiplayer.inRoom) return;
+  await multiplayer.channel.track(multiplayerPresencePayload());
+}
+
+function setMultiplayerMessage(message, isError = false) {
+  if (!multiplayerMessage) return;
+  multiplayerMessage.textContent = message || "";
+  multiplayerMessage.style.color = isError ? "#c44f63" : "#6e8fb5";
+}
+
+function renderMultiplayerLobby() {
+  if (!multiplayerLobby) return;
+
+  const roster = multiplayer.roster.slice(0, 8);
+  lobbyPlayerCount.textContent = roster.length + " / 8";
+  lobbyModeName.textContent = GAME_MODES[multiplayer.settings.mode]?.name || "CLASSÉ";
+  lobbyMapName.textContent = MAPS[multiplayer.settings.map]?.name || "Arène";
+
+  hostBadge.classList.toggle("hidden", !multiplayer.isHost);
+  hostLobbyControls.classList.toggle("hidden", !multiplayer.isHost);
+  guestLobbyWaiting.classList.toggle("hidden", multiplayer.isHost);
+
+  if (lobbyModeSelect) lobbyModeSelect.value = multiplayer.settings.mode;
+  if (lobbyMapSelect) lobbyMapSelect.value = multiplayer.settings.map;
+
+  const cards = roster.map((member) => {
+    const hostMark = member.id === multiplayer.hostId ? '<span class="crown">♛</span>' : "";
+    const you = member.id === multiplayer.clientId ? " · TOI" : "";
+    return '<div class="lobby-player">' +
+      hostMark +
+      '<div class="lobby-player-avatar" style="background:' + escapeLeaderboardText(member.color) + '"></div>' +
+      '<strong>' + escapeLeaderboardText(member.name) + '</strong>' +
+      '<small>' + (member.id === multiplayer.hostId ? "HÔTE" : "JOUEUR") + you + '</small>' +
+      '</div>';
+  });
+
+  while (cards.length < 8) {
+    cards.push('<div class="lobby-player empty"><strong>PLACE LIBRE</strong><small>En attente…</small></div>');
+  }
+
+  lobbyPlayers.innerHTML = cards.join("");
+}
+
+async function refreshMultiplayerPresence() {
+  if (!multiplayer.channel) return;
+
+  const state = multiplayer.channel.presenceState();
+  const members = [];
+
+  for (const entries of Object.values(state)) {
+    for (const entry of entries) {
+      if (!entry?.id) continue;
+      members.push({
+        id: entry.id,
+        name: entry.name || "Player",
+        color: entry.color || COLORS[0],
+        host: Boolean(entry.host),
+        joinedAt: Number(entry.joinedAt || Date.now()),
+        mode: entry.mode || "ranked",
+        map: entry.map || "arena"
+      });
+    }
+  }
+
+  const unique = Array.from(new Map(members.map((m) => [m.id, m])).values())
+    .sort((a, b) => a.joinedAt - b.joinedAt || a.id.localeCompare(b.id));
+
+  if (unique.length > 8) {
+    const allowed = unique.slice(0, 8);
+    if (!allowed.some((m) => m.id === multiplayer.clientId)) {
+      setMultiplayerMessage("Ce salon est complet.", true);
+      await leaveMultiplayerRoom(false);
+      return;
+    }
+  }
+
+  multiplayer.roster = unique.slice(0, 8);
+
+  const explicitHost = multiplayer.roster.find((m) => m.host);
+  multiplayer.hostId = explicitHost?.id || multiplayer.roster[0]?.id || null;
+  multiplayer.isHost = multiplayer.hostId === multiplayer.clientId;
+
+  const hostMember = multiplayer.roster.find((m) => m.id === multiplayer.hostId);
+  if (hostMember) {
+    multiplayer.settings.mode = GAME_MODES[hostMember.mode] ? hostMember.mode : multiplayer.settings.mode;
+    multiplayer.settings.map = MAPS[hostMember.map] ? hostMember.map : multiplayer.settings.map;
+  }
+
+  const duplicateColor = multiplayer.roster.filter((m) => m.color === selectedColor);
+  if (duplicateColor.length > 1 && duplicateColor[0].id !== multiplayer.clientId) {
+    const taken = new Set(multiplayer.roster.filter((m) => m.id !== multiplayer.clientId).map((m) => m.color));
+    const free = COLORS.find((c) => !taken.has(c));
+    if (free) {
+      selectedColor = free;
+      localStorage.setItem("ptpColor", selectedColor);
+      updatePreviewColor();
+      initPalette();
+      await trackMultiplayerPresence();
+      return;
+    }
+  }
+
+  renderMultiplayerLobby();
+
+  if (multiplayer.isHost) {
+    broadcastLobbySettings();
+  }
+}
+
+function broadcastLobbySettings() {
+  if (!multiplayer.channel || !multiplayer.inRoom || !multiplayer.isHost) return;
+
+  multiplayer.channel.send({
+    type: "broadcast",
+    event: "settings",
+    payload: {
+      mode: multiplayer.settings.mode,
+      map: multiplayer.settings.map,
+      hostId: multiplayer.clientId
+    }
+  });
+}
+
+async function joinMultiplayerRoom(code, create = false) {
+  code = cleanRoomCode(code);
+  if (code.length !== 6) {
+    setMultiplayerMessage("Le code doit contenir 6 caractères.", true);
+    return;
+  }
+
+  if (!window.PTPCloud?.client) {
+    setMultiplayerMessage("Connexion multijoueur indisponible.", true);
+    return;
+  }
+
+  if (multiplayer.channel) {
+    try { await multiplayer.channel.unsubscribe(); } catch {}
+  }
+
+  multiplayer.roomCode = code;
+  multiplayer.inRoom = true;
+  multiplayer.matchActive = false;
+  multiplayer.isHost = create;
+  multiplayer.hostId = create ? multiplayer.clientId : null;
+  multiplayer.settings = { mode: selectedMode, map: selectedMap };
+
+  const channel = window.PTPCloud.client.channel("ptp-room-" + code, {
+    config: {
+      presence: { key: multiplayer.clientId },
+      broadcast: { self: false }
+    }
+  });
+
+  multiplayer.channel = channel;
+
+  channel
+    .on("presence", { event: "sync" }, refreshMultiplayerPresence)
+    .on("broadcast", { event: "settings" }, ({ payload }) => {
+      if (!payload) return;
+      if (GAME_MODES[payload.mode]) multiplayer.settings.mode = payload.mode;
+      if (MAPS[payload.map]) multiplayer.settings.map = payload.map;
+      multiplayer.hostId = payload.hostId || multiplayer.hostId;
+      multiplayer.isHost = multiplayer.hostId === multiplayer.clientId;
+      renderMultiplayerLobby();
+    })
+    .on("broadcast", { event: "start" }, ({ payload }) => {
+      if (!payload?.roster?.length) return;
+      startMultiplayerGame(payload);
+    })
+    .on("broadcast", { event: "state" }, ({ payload }) => {
+      applyRemotePlayerState(payload);
+    })
+    .on("broadcast", { event: "capture" }, ({ payload }) => {
+      applyRemoteCapture(payload);
+    })
+    .on("broadcast", { event: "kill" }, ({ payload }) => {
+      applyRemoteKill(payload);
+    })
+    .subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        try {
+          await channel.track(multiplayerPresencePayload());
+          roomCodeDisplay.textContent = code;
+          multiplayerEntry.classList.add("hidden");
+          multiplayerLobby.classList.remove("hidden");
+          setMultiplayerMessage("");
+        } catch (error) {
+          console.error(error);
+          setMultiplayerMessage("Impossible d'entrer dans le salon.", true);
+        }
+      }
+    });
+}
+
+async function leaveMultiplayerRoom(returnToEntry = true) {
+  multiplayer.matchActive = false;
+  multiplayer.inRoom = false;
+  multiplayer.roster = [];
+  multiplayer.hostId = null;
+  multiplayer.roomCode = "";
+
+  if (multiplayer.channel) {
+    try {
+      await multiplayer.channel.untrack();
+      await multiplayer.channel.unsubscribe();
+    } catch {}
+  }
+
+  multiplayer.channel = null;
+
+  if (returnToEntry && multiplayerEntry && multiplayerLobby) {
+    multiplayerEntry.classList.remove("hidden");
+    multiplayerLobby.classList.add("hidden");
+    roomCodeInput.value = "";
+    setMultiplayerMessage("");
+  }
+}
+
+function deterministicMultiplayerSpawn(index, count) {
+  if (count <= 1) return { x: 0, y: 0 };
+  const angle = -Math.PI / 2 + (index / count) * TAU;
+  const radius = WORLD_RADIUS * 0.62;
+  return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+}
+
+function startMultiplayerGame(payload) {
+  const roster = payload.roster.slice(0, 8);
+  if (!roster.some((m) => m.id === multiplayer.clientId)) return;
+
+  selectedMode = GAME_MODES[payload.mode] ? payload.mode : "ranked";
+  selectedMap = MAPS[payload.map] ? payload.map : "arena";
+  multiplayer.settings = { mode: selectedMode, map: selectedMap };
+  multiplayer.matchActive = true;
+
+  localStorage.setItem("ptpMode", selectedMode);
+  localStorage.setItem("ptpMap", selectedMap);
+  updateModeSelectionUI();
+  updateMapSelectionUI();
+
+  buildWorld();
+  entities = [];
+  particles = [];
+  coins = [];
+  kills = 0;
+  currentEarned = 0;
+  playerPercent = 0;
+  toastTimer = 0;
+  leaderboardTimer = 0;
+  matchTimeLeft = GAME_MODES[selectedMode].timeLimit;
+
+  roster.forEach((member, index) => {
+    const spawn = deterministicMultiplayerSpawn(index, roster.length);
+    const entity = makeEntity(index, member.name, member.color, spawn.x, spawn.y, false);
+    entity.clientId = member.id;
+    entity.isRemote = member.id !== multiplayer.clientId;
+    entity.invuln = 1.25;
+    entity.angle = Math.atan2(-spawn.y, -spawn.x);
+    entity.dirX = Math.cos(entity.angle);
+    entity.dirY = Math.sin(entity.angle);
+    entities.push(entity);
+    paintCircle(entity, START_RADIUS * 0.9);
+
+    if (member.id === multiplayer.clientId) {
+      player = entity;
+      selectedColor = member.color;
+    }
+  });
+
+  rebuildTerritoryCounts();
+
+  camera.x = player.x;
+  camera.y = player.y;
+  camera.zoom = 1;
+  hudName.textContent = player.name;
+  gameoverPaper.style.background = player.color;
+
+  running = true;
+  last = performance.now();
+  show(game);
+  updateHud(true);
+  requestAnimationFrame(loop);
+}
+
+function broadcastMultiplayerState() {
+  if (!multiplayer.matchActive || !multiplayer.channel || !player) return;
+
+  const now = performance.now();
+  if (now - multiplayer.lastStateSent < 80) return;
+  multiplayer.lastStateSent = now;
+
+  multiplayer.channel.send({
+    type: "broadcast",
+    event: "state",
+    payload: {
+      clientId: multiplayer.clientId,
+      x: player.x,
+      y: player.y,
+      angle: player.angle,
+      dirX: player.dirX,
+      dirY: player.dirY,
+      outside: player.outside,
+      alive: player.alive,
+      trail: player.trail.map((t) => [t.gx, t.gy])
+    }
+  });
+}
+
+function applyRemotePlayerState(payload) {
+  if (!multiplayer.matchActive || !payload || payload.clientId === multiplayer.clientId) return;
+  const entity = entities.find((e) => e.clientId === payload.clientId);
+  if (!entity) return;
+
+  entity.x = Number(payload.x || 0);
+  entity.y = Number(payload.y || 0);
+  entity.angle = Number(payload.angle || 0);
+  entity.dirX = Number(payload.dirX || 0);
+  entity.dirY = Number(payload.dirY || 0);
+  entity.outside = Boolean(payload.outside);
+  entity.alive = payload.alive !== false;
+
+  entity.trail = Array.isArray(payload.trail)
+    ? payload.trail.map(([gx, gy]) => {
+        const index = gridIndex(gx, gy);
+        const p = gridToWorld(gx, gy);
+        return { gx, gy, index, x: p.x, y: p.y };
+      }).filter((t) => t.index >= 0)
+    : [];
+
+  entity.trailCells = new Set(entity.trail.map((t) => t.gx + "," + t.gy));
+}
+
+function broadcastCapturedCells(changedCells) {
+  if (!multiplayer.matchActive || !multiplayer.channel || !player) return;
+
+  for (let i = 0; i < changedCells.length; i += 350) {
+    multiplayer.channel.send({
+      type: "broadcast",
+      event: "capture",
+      payload: {
+        clientId: multiplayer.clientId,
+        cells: changedCells.slice(i, i + 350)
+      }
+    });
+  }
+}
+
+function applyRemoteCapture(payload) {
+  if (!multiplayer.matchActive || !payload || payload.clientId === multiplayer.clientId) return;
+  const entity = entities.find((e) => e.clientId === payload.clientId);
+  if (!entity || !Array.isArray(payload.cells)) return;
+
+  for (const index of payload.cells) {
+    if (index >= 0 && index < ownerGrid.length && playableMask[index]) {
+      ownerGrid[index] = entity.id;
+    }
+  }
+
+  rebuildTerritoryCounts();
+}
+
+function applyRemoteKill(payload) {
+  if (!multiplayer.matchActive || !payload?.victimClientId) return;
+
+  const victim = entities.find((e) => e.clientId === payload.victimClientId);
+  const killer = payload.killerClientId
+    ? entities.find((e) => e.clientId === payload.killerClientId)
+    : null;
+
+  if (victim?.alive) killEntity(victim, killer || null, true);
+}
+
+if (openMultiplayerBtn) {
+  openMultiplayerBtn.onclick = () => {
+    multiplayerEntry.classList.toggle("hidden", multiplayer.inRoom);
+    multiplayerLobby.classList.toggle("hidden", !multiplayer.inRoom);
+    if (multiplayer.inRoom) renderMultiplayerLobby();
+    show(multiplayerModal);
+  };
+}
+
+if (closeMultiplayerBtn) {
+  closeMultiplayerBtn.onclick = () => show(menu);
+}
+
+if (createRoomBtn) {
+  createRoomBtn.onclick = () => joinMultiplayerRoom(createRoomCode(), true);
+}
+
+if (joinRoomBtn) {
+  joinRoomBtn.onclick = () => joinMultiplayerRoom(roomCodeInput.value, false);
+}
+
+if (roomCodeInput) {
+  roomCodeInput.addEventListener("input", () => {
+    roomCodeInput.value = cleanRoomCode(roomCodeInput.value);
+  });
+}
+
+if (copyRoomCodeBtn) {
+  copyRoomCodeBtn.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(multiplayer.roomCode);
+      copyRoomCodeBtn.textContent = "COPIÉ";
+      setTimeout(() => copyRoomCodeBtn.textContent = "COPIER", 1000);
+    } catch {
+      roomCodeInput.value = multiplayer.roomCode;
+    }
+  };
+}
+
+if (syncLobbySettingsBtn) {
+  syncLobbySettingsBtn.onclick = async () => {
+    if (!multiplayer.isHost) return;
+    const nextMode = lobbyModeSelect?.value || selectedMode;
+    const nextMap = lobbyMapSelect?.value || selectedMap;
+
+    if (GAME_MODES[nextMode]) multiplayer.settings.mode = nextMode;
+    if (MAPS[nextMap]) multiplayer.settings.map = nextMap;
+
+    selectedMode = multiplayer.settings.mode;
+    selectedMap = multiplayer.settings.map;
+    updateModeSelectionUI();
+    updateMapSelectionUI();
+    await trackMultiplayerPresence();
+    broadcastLobbySettings();
+    renderMultiplayerLobby();
+  };
+}
+
+if (startLobbyGameBtn) {
+  startLobbyGameBtn.onclick = () => {
+    if (!multiplayer.isHost) return;
+    if (multiplayer.roster.length < 2) {
+      setMultiplayerMessage("Il faut au moins 2 joueurs pour lancer une partie.", true);
+      return;
+    }
+
+    const payload = {
+      mode: multiplayer.settings.mode,
+      map: multiplayer.settings.map,
+      roster: multiplayer.roster.map((m) => ({
+        id: m.id,
+        name: m.name,
+        color: m.color
+      }))
+    };
+
+    multiplayer.channel?.send({ type: "broadcast", event: "start", payload });
+    startMultiplayerGame(payload);
+  };
+}
+
+if (leaveRoomBtn) {
+  leaveRoomBtn.onclick = async () => {
+    await leaveMultiplayerRoom(true);
+  };
+}
