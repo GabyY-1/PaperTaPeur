@@ -174,8 +174,33 @@
         <div><small>ÉLIMINATIONS</small><strong id="accountKills">0</strong></div>
       </div>
 
-      <button id="saveAccountBtn" class="modal-primary">ENREGISTRER</button>
-      <p class="account-note">Profil sauvegardé sur cet appareil pour le moment.</p>
+      <button id="saveAccountBtn" class="modal-primary">ENREGISTRER LE PROFIL</button>
+
+      <div class="cloud-account-box">
+        <div class="cloud-head">
+          <div>
+            <small>COMPTE CLOUD</small>
+            <strong id="cloudStatus">Non connecté</strong>
+          </div>
+          <span id="cloudDot" class="cloud-dot"></span>
+        </div>
+
+        <label class="account-label" for="accountEmail">EMAIL</label>
+        <input id="accountEmail" type="email" autocomplete="email" placeholder="ton@email.fr">
+
+        <label class="account-label" for="accountPassword">MOT DE PASSE</label>
+        <input id="accountPassword" type="password" autocomplete="current-password" minlength="6" placeholder="6 caractères minimum">
+
+        <div class="cloud-actions">
+          <button id="signInBtn" class="modal-primary compact">SE CONNECTER</button>
+          <button id="signUpBtn" class="modal-secondary compact">CRÉER UN COMPTE</button>
+        </div>
+
+        <button id="signOutBtn" class="modal-secondary hidden">SE DÉCONNECTER</button>
+        <p id="authMessage" class="account-note"></p>
+      </div>
+
+      <p class="account-note">Connecté : progression, rang, pièces et statistiques sont synchronisés avec Supabase.</p>
     </div>
   </section>
 
@@ -229,7 +254,9 @@
 
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/profile.js"></script>
+<script src="js/cloud.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
