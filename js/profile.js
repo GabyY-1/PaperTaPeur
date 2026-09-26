@@ -3,34 +3,33 @@
 
   const RANKS = [
     { name: "Bronze", tier: "III", min: 0, color: "#b77948" },
-    { name: "Bronze", tier: "II", min: 85, color: "#b77948" },
-    { name: "Bronze", tier: "I", min: 170, color: "#b77948" },
+    { name: "Bronze", tier: "II", min: 250, color: "#b77948" },
+    { name: "Bronze", tier: "I", min: 500, color: "#b77948" },
 
-    { name: "Argent", tier: "III", min: 250, color: "#b9c3cb" },
-    { name: "Argent", tier: "II", min: 367, color: "#b9c3cb" },
-    { name: "Argent", tier: "I", min: 484, color: "#b9c3cb" },
+    { name: "Argent", tier: "III", min: 800, color: "#b9c3cb" },
+    { name: "Argent", tier: "II", min: 1200, color: "#b9c3cb" },
+    { name: "Argent", tier: "I", min: 1600, color: "#b9c3cb" },
 
-    { name: "Or", tier: "III", min: 600, color: "#f1bf36" },
-    { name: "Or", tier: "II", min: 767, color: "#f1bf36" },
-    { name: "Or", tier: "I", min: 934, color: "#f1bf36" },
+    { name: "Or", tier: "III", min: 2200, color: "#f1bf36" },
+    { name: "Or", tier: "II", min: 2800, color: "#f1bf36" },
+    { name: "Or", tier: "I", min: 3400, color: "#f1bf36" },
 
-    { name: "Platine", tier: "III", min: 1100, color: "#70d2cf" },
-    { name: "Platine", tier: "II", min: 1334, color: "#70d2cf" },
-    { name: "Platine", tier: "I", min: 1567, color: "#70d2cf" },
+    { name: "Platine", tier: "III", min: 4200, color: "#70d2cf" },
+    { name: "Platine", tier: "II", min: 5000, color: "#70d2cf" },
+    { name: "Platine", tier: "I", min: 5800, color: "#70d2cf" },
 
-    { name: "Diamant", tier: "III", min: 1800, color: "#6fa8ff" },
-    { name: "Diamant", tier: "II", min: 2100, color: "#6fa8ff" },
-    { name: "Diamant", tier: "I", min: 2400, color: "#6fa8ff" },
+    { name: "Diamant", tier: "III", min: 7000, color: "#6fa8ff" },
+    { name: "Diamant", tier: "II", min: 8200, color: "#6fa8ff" },
+    { name: "Diamant", tier: "I", min: 9400, color: "#6fa8ff" },
 
-    { name: "Maître", tier: "III", min: 2700, color: "#a66cff" },
-    { name: "Maître", tier: "II", min: 3134, color: "#a66cff" },
-    { name: "Maître", tier: "I", min: 3567, color: "#a66cff" },
+    { name: "Maître", tier: "III", min: 11000, color: "#a66cff" },
+    { name: "Maître", tier: "II", min: 12500, color: "#a66cff" },
+    { name: "Maître", tier: "I", min: 14000, color: "#a66cff" },
 
-    { name: "Champion", tier: "III", min: 4000, color: "#ff5577" },
-    { name: "Champion", tier: "II", min: 4500, color: "#ff5577" },
-    { name: "Champion", tier: "I", min: 5000, color: "#ff5577" }
-  ];
-  const defaults = {
+    { name: "Champion", tier: "III", min: 16000, color: "#ff5577" },
+    { name: "Champion", tier: "II", min: 18000, color: "#ff5577" },
+    { name: "Champion", tier: "I", min: 20000, color: "#ff5577" }
+  ];  const defaults = {
     id: "",
     name: "Player",
     createdAt: 0,
