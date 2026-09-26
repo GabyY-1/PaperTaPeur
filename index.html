@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-multiplayer1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-multiplayer2">
 </head>
 <body>
 <main id="app">
@@ -249,8 +249,24 @@
         <div id="lobbyPlayers" class="lobby-players"></div>
 
         <div id="hostLobbyControls" class="host-lobby-controls">
-          <p>Le mode et la carte utilisent les sélections du menu principal.</p>
-          <button id="syncLobbySettingsBtn" class="modal-secondary">ACTUALISER MODE / CARTE</button>
+          <div class="lobby-selectors">
+            <label>MODE
+              <select id="lobbyModeSelect">
+                <option value="ranked">Classé</option>
+                <option value="blitz">Blitz</option>
+                <option value="elimination">Élimination</option>
+                <option value="conquest">Conquête</option>
+              </select>
+            </label>
+            <label>CARTE
+              <select id="lobbyMapSelect">
+                <option value="arena">Arène</option>
+                <option value="compact">Compact</option>
+                <option value="titan">Titan</option>
+              </select>
+            </label>
+          </div>
+          <button id="syncLobbySettingsBtn" class="modal-secondary">APPLIQUER LES RÉGLAGES</button>
           <button id="startLobbyGameBtn" class="modal-primary big">LANCER LA PARTIE</button>
         </div>
 
@@ -393,6 +409,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/profile.js?v=20260926-competitive1"></script>
 <script src="js/cloud.js?v=20260926-maps-leaderboard3"></script>
-<script src="js/main.js?v=20260926-multiplayer1"></script>
+<script src="js/main.js?v=20260926-multiplayer2"></script>
 </body>
 </html>
