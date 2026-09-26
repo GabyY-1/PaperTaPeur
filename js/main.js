@@ -400,13 +400,34 @@ function appendTrail(e){
 
 function claimLoop(e){
   const before=e.territoryCount;
+  if(e.trail.length<3)return;
+
+  const polygon=e.trail.map(t=>({x:t.x,y:t.y}));
+
+  // On ferme uniquement la boucle dessinée par la trace.
+  // Le territoire n'est plus agrandi comme un grand cercle.
+  const xs=polygon.map(p=>p.x);
+  const ys=polygon.map(p=>p.y);
+  const minGX=Math.max(0,worldToGrid(Math.min(...xs)-CELL,0).gx);
+  const maxGX=Math.min(GRID-1,worldToGrid(Math.max(...xs)+CELL,0).gx);
+  const minGY=Math.max(0,worldToGrid(0,Math.min(...ys)-CELL).gy);
+  const maxGY=Math.min(GRID-1,worldToGrid(0,Math.max(...ys)+CELL).gy);
 
   for(const t of e.trail){
     const i=gridIndex(t.gx,t.gy);
     if(i>=0&&inCircleCell(t.gx,t.gy))ownerGrid[i]=e.id;
   }
 
-  floodFillClaim(e.id);
+  for(let gy=minGY;gy<=maxGY;gy++){
+    for(let gx=minGX;gx<=maxGX;gx++){
+      if(!inCircleCell(gx,gy))continue;
+      const p=gridToWorld(gx,gy);
+      if(pointInPolygon(p.x,p.y,polygon)){
+        ownerGrid[gridIndex(gx,gy)]=e.id;
+      }
+    }
+  }
+
   recountTerritory();
 
   const gained=Math.max(0,e.territoryCount-before);
@@ -414,10 +435,22 @@ function claimLoop(e){
     burst(e.x,e.y,e.color,22);
     if(e===player){
       const pct=gained/countPlayableCells()*100;
-      if(pct>.15)toast('+'+pct.toFixed(1)+'% territoire');
+      if(pct>.05)toast('+'+pct.toFixed(1)+'% territoire');
       blip(670,.08,'triangle',.035);
     }
   }
+}
+
+function pointInPolygon(x,y,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const xi=poly[i].x,yi=poly[i].y;
+    const xj=poly[j].x,yj=poly[j].y;
+    const intersect=((yi>y)!=(yj>y)) &&
+      (x < (xj-xi)*(y-yi)/((yj-yi)||0.000001)+xi);
+    if(intersect)inside=!inside;
+  }
+  return inside;
 }
 
 let playableCellsCache=0;
