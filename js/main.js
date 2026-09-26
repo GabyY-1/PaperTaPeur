@@ -1,814 +1,1406 @@
-const canvas=document.getElementById('gameCanvas');
-const ctx=canvas.getContext('2d');
-const minimap=document.getElementById('minimap');
-const mctx=minimap.getContext('2d');
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const minimap = document.getElementById("minimap");
+const mctx = minimap.getContext("2d");
 
-const menu=document.getElementById('menu');
-const game=document.getElementById('game');
-const gameover=document.getElementById('gameover');
-const playBtn=document.getElementById('playBtn');
-const retryBtn=document.getElementById('retryBtn');
-const menuBtn=document.getElementById('menuBtn');
-const quitBtn=document.getElementById('quitBtn');
-const nameInput=document.getElementById('playerName');
-const colorPicker=document.getElementById('colorPicker');
+const menu = document.getElementById("menu");
+const game = document.getElementById("game");
+const gameover = document.getElementById("gameover");
 
-const hudName=document.getElementById('hudName');
-const territoryEl=document.getElementById('territory');
-const killsEl=document.getElementById('kills');
-const coinsEl=document.getElementById('coins');
-const menuCoins=document.getElementById('menuCoins');
-const bestScoreEl=document.getElementById('bestScore');
-const bestKillsEl=document.getElementById('bestKills');
-const finalScoreEl=document.getElementById('finalScore');
-const finalKillsEl=document.getElementById('finalKills');
-const earnedCoinsEl=document.getElementById('earnedCoins');
-const leaderboardList=document.getElementById('leaderboardList');
-const playerDot=document.getElementById('playerDot');
-const dangerText=document.getElementById('dangerText');
-const toastEl=document.getElementById('toast');
+const playBtn = document.getElementById("playBtn");
+const retryBtn = document.getElementById("retryBtn");
+const menuBtn = document.getElementById("menuBtn");
+const quitBtn = document.getElementById("quitBtn");
+const skinsBtn = document.getElementById("skinsBtn");
+const soundBtn = document.getElementById("soundBtn");
+const settingsBtn = document.getElementById("settingsBtn");
 
-const TAU=Math.PI*2;
-const WORLD_RADIUS=1320;
-const CELL=24;
-const GRID=Math.ceil(WORLD_RADIUS*2/CELL);
-const GRID_HALF=GRID/2;
-const COLORS=['#ffd84d','#56a8ff','#ff637b','#67dc9a','#b878ff','#ff914d','#47d9d1','#f472d0'];
-const BOT_NAMES=['Nova','Byte','Mika','Zen','Kiro','Lumi','Rex','Pico','Nox','Vega','Milo','Flux','Astra','Jinx'];
-const WORLD={radius:WORLD_RADIUS};
+const nameInput = document.getElementById("playerName");
+const colorPicker = document.getElementById("colorPicker");
+const previewPaper = document.getElementById("previewPaper");
+const gameoverPaper = document.getElementById("gameoverPaper");
 
-let W=innerWidth,H=innerHeight,dpr=1;
-let running=false,last=0;
-let camera={x:0,y:0,zoom:1};
-let keys={};
-let pointerActive=false;
-let selectedColor=localStorage.getItem('ptpColor')||COLORS[0];
+const hudName = document.getElementById("hudName");
+const territoryEl = document.getElementById("territory");
+const killsEl = document.getElementById("kills");
+const coinsEl = document.getElementById("coins");
+const menuCoins = document.getElementById("menuCoins");
+const bestScoreEl = document.getElementById("bestScore");
+const bestKillsEl = document.getElementById("bestKills");
+const finalScoreEl = document.getElementById("finalScore");
+const finalKillsEl = document.getElementById("finalKills");
+const earnedCoinsEl = document.getElementById("earnedCoins");
+const leaderboardList = document.getElementById("leaderboardList");
+const dangerText = document.getElementById("dangerText");
+const toastEl = document.getElementById("toast");
 
-let totalCoins=Number(localStorage.getItem('ptpCoins')||0);
-let bestScore=Number(localStorage.getItem('ptpBest')||0);
-let bestKills=Number(localStorage.getItem('ptpBestKills')||0);
-let currentEarned=0;
-let kills=0;
-let score=0;
-let toastTimer=0;
+const TAU = Math.PI * 2;
 
-let ownerGrid;
-let players=[];
-let player;
-let coins=[];
-let particles=[];
+const WORLD_RADIUS = 1500;
+const CELL = 22;
+const GRID = Math.ceil((WORLD_RADIUS * 2) / CELL);
+const PLAYER_SPEED = 206;
+const BOT_COUNT = 9;
+const START_RADIUS = 112;
 
-const audio={ctx:null};
-function blip(freq=440,duration=.06,type='sine',gain=.035){
-  try{
-    audio.ctx ||= new (window.AudioContext||window.webkitAudioContext)();
-    const o=audio.ctx.createOscillator(),g=audio.ctx.createGain();
-    o.type=type;o.frequency.value=freq;g.gain.value=gain;
-    o.connect(g);g.connect(audio.ctx.destination);
-    o.start();g.gain.exponentialRampToValueAtTime(.001,audio.ctx.currentTime+duration);
-    o.stop(audio.ctx.currentTime+duration);
-  }catch{}
+const COLORS = [
+  "#ffd84d",
+  "#4ca8ff",
+  "#ff596f",
+  "#62d990",
+  "#a96cff",
+  "#ff914d",
+  "#35d6cc",
+  "#f36fc8"
+];
+
+const BOT_NAMES = [
+  "Nova", "Milo", "Lumi", "Rex", "Kiro",
+  "Vega", "Pico", "Astra", "Byte", "Nox",
+  "Zen", "Flux", "Mika", "Jinx"
+];
+
+let W = innerWidth;
+let H = innerHeight;
+let dpr = 1;
+let running = false;
+let last = 0;
+
+let keys = Object.create(null);
+let pointerActive = false;
+let pointerId = null;
+
+let camera = { x: 0, y: 0, zoom: 1 };
+
+let selectedColor = localStorage.getItem("ptpColor") || COLORS[0];
+let totalCoins = Number(localStorage.getItem("ptpCoins") || 0);
+let bestScore = Number(localStorage.getItem("ptpBest") || 0);
+let bestKills = Number(localStorage.getItem("ptpBestKills") || 0);
+let soundEnabled = localStorage.getItem("ptpSound") !== "0";
+
+let ownerGrid = null;
+let playableMask = null;
+let playableCells = 0;
+
+let entities = [];
+let player = null;
+let coins = [];
+let particles = [];
+
+let territoryCounts = [];
+let currentEarned = 0;
+let kills = 0;
+let playerPercent = 0;
+let toastTimer = 0;
+let leaderboardTimer = 0;
+
+const audio = { ctx: null };
+
+function resize() {
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth;
+  H = innerHeight;
+
+  canvas.width = Math.floor(W * dpr);
+  canvas.height = Math.floor(H * dpr);
+  canvas.style.width = W + "px";
+  canvas.style.height = H + "px";
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
-function resize(){
-  dpr=Math.min(devicePixelRatio||1,2);
-  W=innerWidth;H=innerHeight;
-  canvas.width=Math.floor(W*dpr);canvas.height=Math.floor(H*dpr);
-  canvas.style.width=W+'px';canvas.style.height=H+'px';
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-}
-addEventListener('resize',resize);resize();
+addEventListener("resize", resize);
+resize();
 
-function show(screen){
-  [menu,game,gameover].forEach(s=>s.classList.remove('active'));
-  screen.classList.add('active');
+function show(screenEl) {
+  [menu, game, gameover].forEach((s) => s.classList.remove("active"));
+  screenEl.classList.add("active");
 }
 
-function initColorPicker(){
-  colorPicker.innerHTML='';
-  COLORS.forEach(color=>{
-    const b=document.createElement('button');
-    b.className='color-choice'+(color===selectedColor?' active':'');
-    b.style.background=color;
-    b.onclick=()=>{
-      selectedColor=color;
-      localStorage.setItem('ptpColor',color);
-      initColorPicker();
+function initPalette() {
+  colorPicker.innerHTML = "";
+
+  for (const color of COLORS) {
+    const button = document.createElement("button");
+    button.className = "color-choice" + (color === selectedColor ? " active" : "");
+    button.style.background = color;
+    button.setAttribute("aria-label", "Choisir cette couleur");
+
+    button.onclick = () => {
+      selectedColor = color;
+      localStorage.setItem("ptpColor", color);
+      updatePreviewColor();
+      initPalette();
+      tone(640, 0.04, "square", 0.018);
     };
-    colorPicker.appendChild(b);
-  });
-}
-initColorPicker();
 
-function makeGrid(){
-  ownerGrid=new Int16Array(GRID*GRID);
+    colorPicker.appendChild(button);
+  }
+
+  updatePreviewColor();
+}
+
+function updatePreviewColor() {
+  previewPaper.style.background = selectedColor;
+  gameoverPaper.style.background = selectedColor;
+}
+
+function updateMenuStats() {
+  menuCoins.textContent = totalCoins;
+  bestScoreEl.textContent = bestScore.toFixed(1) + "%";
+  bestKillsEl.textContent = bestKills;
+  soundBtn.textContent = soundEnabled ? "🔊" : "🔇";
+}
+
+initPalette();
+updateMenuStats();
+
+function tone(freq = 440, duration = 0.05, type = "sine", gain = 0.025) {
+  if (!soundEnabled) return;
+
+  try {
+    audio.ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+
+    const osc = audio.ctx.createOscillator();
+    const vol = audio.ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.value = freq;
+    vol.gain.value = gain;
+
+    osc.connect(vol);
+    vol.connect(audio.ctx.destination);
+
+    osc.start();
+    vol.gain.exponentialRampToValueAtTime(
+      0.001,
+      audio.ctx.currentTime + duration
+    );
+    osc.stop(audio.ctx.currentTime + duration);
+  } catch {}
+}
+
+function buildWorld() {
+  ownerGrid = new Int16Array(GRID * GRID);
   ownerGrid.fill(-1);
-}
 
-function gridIndex(gx,gy){
-  if(gx<0||gy<0||gx>=GRID||gy>=GRID)return -1;
-  return gy*GRID+gx;
-}
-function worldToGrid(x,y){
-  return {
-    gx:Math.floor((x+WORLD_RADIUS)/CELL),
-    gy:Math.floor((y+WORLD_RADIUS)/CELL)
-  };
-}
-function gridToWorld(gx,gy){
-  return {
-    x:(gx+.5)*CELL-WORLD_RADIUS,
-    y:(gy+.5)*CELL-WORLD_RADIUS
-  };
-}
-function inCircleCell(gx,gy){
-  const p=gridToWorld(gx,gy);
-  return p.x*p.x+p.y*p.y <= (WORLD_RADIUS-CELL*.6)**2;
-}
-function getOwnerAt(x,y){
-  const {gx,gy}=worldToGrid(x,y);
-  const i=gridIndex(gx,gy);
-  return i<0?-99:ownerGrid[i];
-}
+  playableMask = new Uint8Array(GRID * GRID);
+  playableCells = 0;
 
-function createEntity(id,name,color,x,y,isBot=false){
-  const a=Math.random()*TAU;
-  return {
-    id,name,color,x,y,
-    r:14,
-    dirX:Math.cos(a),dirY:Math.sin(a),
-    angle:a,
-    speed:isBot?150+Math.random()*18:184,
-    isBot,
-    alive:true,
-    outside:false,
-    trail:[],
-    trailCells:new Set(),
-    territoryCount:0,
-    botTimer:0,
-    targetAngle:a,
-    excursionTarget:1.2+Math.random()*1.4,
-    respawn:0,
-    invuln:isBot?1.1:0
-  };
-}
+  for (let gy = 0; gy < GRID; gy++) {
+    for (let gx = 0; gx < GRID; gx++) {
+      const i = gridIndex(gx, gy);
+      const p = gridToWorld(gx, gy);
+      const inside =
+        p.x * p.x + p.y * p.y <=
+        (WORLD_RADIUS - CELL * 0.65) ** 2;
 
-function paintStartArea(entity,radius=100){
-  const c=worldToGrid(entity.x,entity.y);
-  const cr=Math.ceil(radius/CELL);
-  for(let gy=c.gy-cr;gy<=c.gy+cr;gy++){
-    for(let gx=c.gx-cr;gx<=c.gx+cr;gx++){
-      if(!inCircleCell(gx,gy))continue;
-      const p=gridToWorld(gx,gy);
-      if(Math.hypot(p.x-entity.x,p.y-entity.y)<=radius){
-        const i=gridIndex(gx,gy);
-        ownerGrid[i]=entity.id;
+      if (inside) {
+        playableMask[i] = 1;
+        playableCells++;
       }
     }
   }
 }
 
-function recountTerritory(){
-  for(const e of players)e.territoryCount=0;
-  for(let i=0;i<ownerGrid.length;i++){
-    const id=ownerGrid[i];
-    if(id>=0&&players[id])players[id].territoryCount++;
+function gridIndex(gx, gy) {
+  if (gx < 0 || gy < 0 || gx >= GRID || gy >= GRID) return -1;
+  return gy * GRID + gx;
+}
+
+function worldToGrid(x, y) {
+  return {
+    gx: Math.floor((x + WORLD_RADIUS) / CELL),
+    gy: Math.floor((y + WORLD_RADIUS) / CELL)
+  };
+}
+
+function gridToWorld(gx, gy) {
+  return {
+    x: (gx + 0.5) * CELL - WORLD_RADIUS,
+    y: (gy + 0.5) * CELL - WORLD_RADIUS
+  };
+}
+
+function isPlayable(gx, gy) {
+  const i = gridIndex(gx, gy);
+  return i >= 0 && playableMask[i] === 1;
+}
+
+function ownerAt(x, y) {
+  const { gx, gy } = worldToGrid(x, y);
+  const i = gridIndex(gx, gy);
+
+  if (i < 0 || !playableMask[i]) return -99;
+  return ownerGrid[i];
+}
+
+function makeEntity(id, name, color, x, y, isBot) {
+  const angle = Math.random() * TAU;
+
+  return {
+    id,
+    name,
+    color,
+    x,
+    y,
+    radius: 15,
+    angle,
+    dirX: Math.cos(angle),
+    dirY: Math.sin(angle),
+    speed: isBot ? 178 + Math.random() * 16 : PLAYER_SPEED,
+    isBot,
+    alive: true,
+    outside: false,
+    trail: [],
+    trailCells: new Set(),
+    respawn: 0,
+    invuln: isBot ? 1.2 : 0,
+    aiTimer: 0,
+    desiredAngle: angle,
+    preferredLoop: 12 + Math.floor(Math.random() * 25)
+  };
+}
+
+function paintCircle(entity, radius) {
+  const center = worldToGrid(entity.x, entity.y);
+  const cells = Math.ceil(radius / CELL);
+
+  for (let gy = center.gy - cells; gy <= center.gy + cells; gy++) {
+    for (let gx = center.gx - cells; gx <= center.gx + cells; gx++) {
+      if (!isPlayable(gx, gy)) continue;
+
+      const p = gridToWorld(gx, gy);
+
+      if (Math.hypot(p.x - entity.x, p.y - entity.y) <= radius) {
+        const i = gridIndex(gx, gy);
+        ownerGrid[i] = entity.id;
+      }
+    }
   }
 }
 
-function chooseBotSpawn(index){
-  const angle=(index/(9))*TAU+Math.random()*.3;
-  const r=560+Math.random()*560;
-  return {x:Math.cos(angle)*r,y:Math.sin(angle)*r};
-}
+function rebuildTerritoryCounts() {
+  territoryCounts = new Array(entities.length).fill(0);
 
-function resetGame(){
-  makeGrid();players=[];particles=[];coins=[];kills=0;score=0;currentEarned=0;
-
-  const pname=(nameInput.value.trim()||'Player').slice(0,16);
-  player=createEntity(0,pname,selectedColor,0,0,false);
-  player.dirX=1;player.dirY=0;player.angle=0;
-  players.push(player);
-  paintStartArea(player,118);
-
-  const botColors=COLORS.filter(c=>c!==selectedColor);
-  for(let i=1;i<=8;i++){
-    const pos=chooseBotSpawn(i);
-    const bot=createEntity(i,BOT_NAMES[(i-1)%BOT_NAMES.length],botColors[(i-1)%botColors.length],pos.x,pos.y,true);
-    players.push(bot);
-    paintStartArea(bot,90+Math.random()*25);
+  for (let i = 0; i < ownerGrid.length; i++) {
+    const owner = ownerGrid[i];
+    if (owner >= 0 && owner < territoryCounts.length) {
+      territoryCounts[owner]++;
+    }
   }
 
-  recountTerritory();
-
-  coins=Array.from({length:125},()=>spawnCoin());
-  camera.x=player.x;camera.y=player.y;camera.zoom=1;
-  hudName.textContent=player.name;playerDot.style.background=player.color;
-  running=true;last=performance.now();
-  dangerText.classList.remove('show');
-  updateHud();
+  playerPercent = ((territoryCounts[0] || 0) / playableCells) * 100;
 }
 
-function spawnCoin(){
-  let x,y;
-  do{
-    const a=Math.random()*TAU;
-    const r=Math.sqrt(Math.random())*(WORLD_RADIUS-60);
-    x=Math.cos(a)*r;y=Math.sin(a)*r;
-  }while(getOwnerAt(x,y)<-1);
-  return {x,y,r:6,spin:Math.random()*TAU};
+function findSpawn(index) {
+  if (index === 0) return { x: 0, y: 0 };
+
+  const angle = (index / BOT_COUNT) * TAU + Math.random() * 0.26;
+  const radius = 660 + Math.random() * 560;
+
+  return {
+    x: Math.cos(angle) * radius,
+    y: Math.sin(angle) * radius
+  };
 }
 
-function start(){
-  resetGame();show(game);blip(520,.08,'square',.02);
+function resetGame() {
+  buildWorld();
+
+  entities = [];
+  particles = [];
+  coins = [];
+
+  kills = 0;
+  currentEarned = 0;
+  playerPercent = 0;
+  toastTimer = 0;
+  leaderboardTimer = 0;
+
+  const name = (nameInput.value.trim() || "Player").slice(0, 14);
+
+  player = makeEntity(0, name, selectedColor, 0, 0, false);
+  player.angle = 0;
+  player.dirX = 1;
+  player.dirY = 0;
+
+  entities.push(player);
+  paintCircle(player, START_RADIUS);
+
+  const botColors = COLORS.filter((c) => c !== selectedColor);
+
+  for (let i = 1; i <= BOT_COUNT; i++) {
+    const spawn = findSpawn(i);
+
+    const bot = makeEntity(
+      i,
+      BOT_NAMES[(i - 1) % BOT_NAMES.length],
+      botColors[(i - 1) % botColors.length],
+      spawn.x,
+      spawn.y,
+      true
+    );
+
+    entities.push(bot);
+    paintCircle(bot, 92 + Math.random() * 28);
+  }
+
+  rebuildTerritoryCounts();
+
+  for (let i = 0; i < 90; i++) coins.push(spawnCoin());
+
+  camera.x = player.x;
+  camera.y = player.y;
+  camera.zoom = 1;
+
+  hudName.textContent = player.name;
+  gameoverPaper.style.background = player.color;
+
+  running = true;
+  last = performance.now();
+
+  updateHud(true);
+}
+
+function spawnCoin() {
+  const a = Math.random() * TAU;
+  const r = Math.sqrt(Math.random()) * (WORLD_RADIUS - 50);
+
+  return {
+    x: Math.cos(a) * r,
+    y: Math.sin(a) * r,
+    spin: Math.random() * TAU
+  };
+}
+
+function startGame() {
+  resetGame();
+  show(game);
+  tone(530, 0.07, "square", 0.02);
   requestAnimationFrame(loop);
 }
 
-function loop(now){
-  if(!running)return;
-  const dt=Math.min((now-last)/1000,.033);
-  last=now;
-  update(dt);draw();
+function loop(now) {
+  if (!running) return;
+
+  const dt = Math.min((now - last) / 1000, 0.032);
+  last = now;
+
+  update(dt);
+  draw();
+
   requestAnimationFrame(loop);
 }
 
-function update(dt){
-  if(player.alive)updatePlayerInput();
-  for(const e of players){
-    if(!e.alive){
-      if(e.isBot){
-        e.respawn-=dt;
-        if(e.respawn<=0)respawnBot(e);
+function update(dt) {
+  if (player.alive) readKeyboard();
+
+  for (const entity of entities) {
+    if (!entity.alive) {
+      if (entity.isBot) {
+        entity.respawn -= dt;
+        if (entity.respawn <= 0) respawnBot(entity);
       }
       continue;
     }
-    if(e.invuln>0)e.invuln-=dt;
-    if(e.isBot)updateBotAI(e,dt);
-    moveEntity(e,dt);
+
+    if (entity.invuln > 0) entity.invuln -= dt;
+
+    if (entity.isBot) updateBot(entity, dt);
+
+    moveEntity(entity, dt);
   }
 
-  resolveTrailCollisions();
+  resolveTrailCuts();
+  resolveBodyCollisions();
   updateCoins(dt);
   updateParticles(dt);
 
-  const targetZoom=player.outside?.92:1;
-  camera.zoom+=(targetZoom-camera.zoom)*Math.min(1,dt*2.5);
-  camera.x+=(player.x-camera.x)*Math.min(1,dt*5.4);
-  camera.y+=(player.y-camera.y)*Math.min(1,dt*5.4);
+  camera.x += (player.x - camera.x) * Math.min(1, dt * 6);
+  camera.y += (player.y - camera.y) * Math.min(1, dt * 6);
 
-  if(toastTimer>0){
-    toastTimer-=dt;
-    if(toastTimer<=0)toastEl.classList.remove('show');
+  const targetZoom = player.outside ? 0.91 : 1;
+  camera.zoom += (targetZoom - camera.zoom) * Math.min(1, dt * 2.6);
+
+  if (toastTimer > 0) {
+    toastTimer -= dt;
+    if (toastTimer <= 0) toastEl.classList.remove("show");
   }
 
-  updateHud();
+  leaderboardTimer -= dt;
+  updateHud(leaderboardTimer <= 0);
+
+  if (leaderboardTimer <= 0) leaderboardTimer = 0.25;
 }
 
-function updatePlayerInput(){
-  let x=0,y=0;
-  if(keys.arrowleft||keys.a||keys.q)x-=1;
-  if(keys.arrowright||keys.d)x+=1;
-  if(keys.arrowup||keys.w||keys.z)y-=1;
-  if(keys.arrowdown||keys.s)y+=1;
-  if(x||y)setDirection(player,x,y);
+function readKeyboard() {
+  let x = 0;
+  let y = 0;
+
+  if (keys.arrowleft || keys.a || keys.q) x -= 1;
+  if (keys.arrowright || keys.d) x += 1;
+  if (keys.arrowup || keys.w || keys.z) y -= 1;
+  if (keys.arrowdown || keys.s) y += 1;
+
+  if (x || y) setDirection(player, x, y);
 }
 
-function setDirection(e,x,y){
-  const l=Math.hypot(x,y)||1;
-  const nx=x/l,ny=y/l;
-  if(e.trail.length>3 && nx*e.dirX+ny*e.dirY<-.72)return;
-  e.dirX=nx;e.dirY=ny;e.angle=Math.atan2(ny,nx);
+function setDirection(entity, x, y) {
+  const length = Math.hypot(x, y) || 1;
+  const nx = x / length;
+  const ny = y / length;
+
+  if (
+    entity.outside &&
+    entity.trail.length > 4 &&
+    nx * entity.dirX + ny * entity.dirY < -0.84
+  ) {
+    return;
+  }
+
+  entity.dirX = nx;
+  entity.dirY = ny;
+  entity.angle = Math.atan2(ny, nx);
 }
 
-function updateBotAI(bot,dt){
-  bot.botTimer-=dt;
-  const own=getOwnerAt(bot.x,bot.y)===bot.id;
+function updateBot(bot, dt) {
+  bot.aiTimer -= dt;
 
-  if(bot.botTimer<=0){
-    bot.botTimer=.45+Math.random()*.9;
+  if (bot.aiTimer <= 0) {
+    bot.aiTimer = 0.24 + Math.random() * 0.48;
 
-    const edgeDist=WORLD_RADIUS-Math.hypot(bot.x,bot.y);
-    if(edgeDist<130){
-      bot.targetAngle=Math.atan2(-bot.y,-bot.x)+(Math.random()-.5)*.5;
-    }else if(bot.outside && bot.trail.length>bot.excursionTarget*17){
-      const home=findNearestOwnedCell(bot);
-      bot.targetAngle=Math.atan2(home.y-bot.y,home.x-bot.x)+(Math.random()-.5)*.28;
-    }else if(own && Math.random()<.7){
-      bot.targetAngle=bot.angle+(Math.random()-.5)*1.5;
-      bot.excursionTarget=1.2+Math.random()*2.3;
-    }else{
-      const playerTrailTarget=findTrailTarget(bot);
-      if(playerTrailTarget && Math.random()<.55){
-        bot.targetAngle=Math.atan2(playerTrailTarget.y-bot.y,playerTrailTarget.x-bot.x);
-      }else{
-        bot.targetAngle+= (Math.random()-.5)*1.05;
+    const distanceFromCenter = Math.hypot(bot.x, bot.y);
+    const edgeDistance = WORLD_RADIUS - distanceFromCenter;
+
+    if (edgeDistance < 145) {
+      bot.desiredAngle =
+        Math.atan2(-bot.y, -bot.x) + (Math.random() - 0.5) * 0.38;
+    } else if (bot.outside && bot.trail.length > bot.preferredLoop) {
+      const home = nearestOwnedCell(bot);
+      bot.desiredAngle =
+        Math.atan2(home.y - bot.y, home.x - bot.x) +
+        (Math.random() - 0.5) * 0.22;
+    } else {
+      const trailTarget = findNearbyEnemyTrail(bot);
+
+      if (trailTarget && Math.random() < 0.55) {
+        bot.desiredAngle = Math.atan2(
+          trailTarget.y - bot.y,
+          trailTarget.x - bot.x
+        );
+      } else {
+        bot.desiredAngle += (Math.random() - 0.5) * 0.95;
+      }
+
+      if (!bot.outside && Math.random() < 0.3) {
+        bot.preferredLoop = 14 + Math.floor(Math.random() * 34);
       }
     }
   }
 
-  let delta=normalizeAngle(bot.targetAngle-bot.angle);
-  delta=Math.max(-1.65*dt,Math.min(1.65*dt,delta));
-  bot.angle+=delta;
-  bot.dirX=Math.cos(bot.angle);bot.dirY=Math.sin(bot.angle);
+  let delta = normalizeAngle(bot.desiredAngle - bot.angle);
+  const maxTurn = 2.05 * dt;
+
+  delta = Math.max(-maxTurn, Math.min(maxTurn, delta));
+
+  bot.angle += delta;
+  bot.dirX = Math.cos(bot.angle);
+  bot.dirY = Math.sin(bot.angle);
 }
 
-function findNearestOwnedCell(bot){
-  const c=worldToGrid(bot.x,bot.y);
-  let best={x:0,y:0},bd=Infinity;
-  for(let rr=1;rr<18;rr+=3){
-    for(let y=c.gy-rr;y<=c.gy+rr;y++){
-      for(let x=c.gx-rr;x<=c.gx+rr;x++){
-        const i=gridIndex(x,y);
-        if(i>=0&&ownerGrid[i]===bot.id){
-          const p=gridToWorld(x,y),d=(p.x-bot.x)**2+(p.y-bot.y)**2;
-          if(d<bd){bd=d;best=p}
+function normalizeAngle(value) {
+  while (value > Math.PI) value -= TAU;
+  while (value < -Math.PI) value += TAU;
+  return value;
+}
+
+function nearestOwnedCell(entity) {
+  const center = worldToGrid(entity.x, entity.y);
+
+  for (let radius = 2; radius < 28; radius += 3) {
+    let best = null;
+    let bestDistance = Infinity;
+
+    for (let gy = center.gy - radius; gy <= center.gy + radius; gy++) {
+      for (let gx = center.gx - radius; gx <= center.gx + radius; gx++) {
+        const i = gridIndex(gx, gy);
+
+        if (i < 0 || ownerGrid[i] !== entity.id) continue;
+
+        const p = gridToWorld(gx, gy);
+        const d = (p.x - entity.x) ** 2 + (p.y - entity.y) ** 2;
+
+        if (d < bestDistance) {
+          bestDistance = d;
+          best = p;
         }
       }
     }
-    if(bd<Infinity)break;
+
+    if (best) return best;
   }
+
+  return { x: 0, y: 0 };
+}
+
+function findNearbyEnemyTrail(bot) {
+  let best = null;
+  let bestDistance = 290 * 290;
+
+  for (const entity of entities) {
+    if (!entity.alive || entity.id === bot.id || entity.trail.length < 2) {
+      continue;
+    }
+
+    for (let i = 0; i < entity.trail.length; i += 3) {
+      const p = entity.trail[i];
+      const d = (p.x - bot.x) ** 2 + (p.y - bot.y) ** 2;
+
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = p;
+      }
+    }
+  }
+
   return best;
 }
 
-function findTrailTarget(bot){
-  let best=null,bd=260*260;
-  for(const e of players){
-    if(!e.alive||e.id===bot.id||e.trail.length<3)continue;
-    for(let i=0;i<e.trail.length;i+=4){
-      const p=e.trail[i],d=(p.x-bot.x)**2+(p.y-bot.y)**2;
-      if(d<bd){bd=d;best=p}
-    }
-  }
-  return best;
-}
+function moveEntity(entity, dt) {
+  entity.x += entity.dirX * entity.speed * dt;
+  entity.y += entity.dirY * entity.speed * dt;
 
-function normalizeAngle(a){
-  while(a>Math.PI)a-=TAU;
-  while(a<-Math.PI)a+=TAU;
-  return a;
-}
+  const distance = Math.hypot(entity.x, entity.y);
+  const maxDistance = WORLD_RADIUS - entity.radius - 8;
 
-function moveEntity(e,dt){
-  e.x+=e.dirX*e.speed*dt;
-  e.y+=e.dirY*e.speed*dt;
+  if (distance > maxDistance) {
+    const nx = entity.x / distance;
+    const ny = entity.y / distance;
 
-  const d=Math.hypot(e.x,e.y);
-  if(d>WORLD_RADIUS-e.r-10){
-    const nx=e.x/d,ny=e.y/d;
-    e.x=nx*(WORLD_RADIUS-e.r-10);
-    e.y=ny*(WORLD_RADIUS-e.r-10);
-    if(e.isBot){
-      e.angle=Math.atan2(-e.y,-e.x)+(Math.random()-.5)*.45;
-      e.dirX=Math.cos(e.angle);e.dirY=Math.sin(e.angle);
+    entity.x = nx * maxDistance;
+    entity.y = ny * maxDistance;
+
+    if (entity.isBot) {
+      entity.angle =
+        Math.atan2(-entity.y, -entity.x) + (Math.random() - 0.5) * 0.35;
+      entity.dirX = Math.cos(entity.angle);
+      entity.dirY = Math.sin(entity.angle);
+    } else {
+      setDirection(entity, -entity.x, -entity.y);
     }
   }
 
-  const own=getOwnerAt(e.x,e.y)===e.id;
-  if(!own){
-    if(!e.outside){
-      e.outside=true;
-      e.trail=[];e.trailCells.clear();
+  const onOwnTerritory = ownerAt(entity.x, entity.y) === entity.id;
+
+  if (!onOwnTerritory) {
+    if (!entity.outside) {
+      entity.outside = true;
+      entity.trail = [];
+      entity.trailCells.clear();
     }
-    appendTrail(e);
-  }else if(e.outside){
-    if(e.trail.length>=3)claimLoop(e);
-    e.outside=false;
-    e.trail=[];e.trailCells.clear();
+
+    appendTrail(entity);
+  } else if (entity.outside) {
+    if (entity.trail.length >= 3) captureTerritory(entity);
+
+    entity.outside = false;
+    entity.trail = [];
+    entity.trailCells.clear();
   }
 
-  if(e===player)dangerText.classList.toggle('show',e.outside&&e.trail.length>18);
+  if (entity === player) {
+    dangerText.classList.toggle(
+      "show",
+      entity.outside && entity.trail.length > 17
+    );
+  }
 }
 
-function appendTrail(e){
-  const {gx,gy}=worldToGrid(e.x,e.y);
-  const key=gx+','+gy;
-  if(e.trailCells.has(key))return;
-  const p=gridToWorld(gx,gy);
-  e.trail.push({x:p.x,y:p.y,gx,gy});
-  e.trailCells.add(key);
+function appendTrail(entity) {
+  const { gx, gy } = worldToGrid(entity.x, entity.y);
+  const index = gridIndex(gx, gy);
 
-  if(e.trail.length>5){
-    for(let i=0;i<e.trail.length-4;i++){
-      const t=e.trail[i];
-      if(Math.hypot(e.x-t.x,e.y-t.y)<CELL*.72){
-        killEntity(e,null);
+  if (index < 0 || !playableMask[index]) return;
+
+  const key = gx + "," + gy;
+
+  if (entity.trailCells.has(key)) return;
+
+  const p = gridToWorld(gx, gy);
+
+  entity.trail.push({
+    x: p.x,
+    y: p.y,
+    gx,
+    gy,
+    index
+  });
+
+  entity.trailCells.add(key);
+
+  if (entity.trail.length > 7) {
+    for (let i = 0; i < entity.trail.length - 5; i++) {
+      const t = entity.trail[i];
+
+      if (Math.hypot(entity.x - t.x, entity.y - t.y) < CELL * 0.7) {
+        killEntity(entity, null);
         return;
       }
     }
   }
 }
 
-function claimLoop(e){
-  const before=e.territoryCount;
-  if(e.trail.length<3)return;
+function captureTerritory(entity) {
+  const before = territoryCounts[entity.id] || 0;
 
-  const polygon=e.trail.map(t=>({x:t.x,y:t.y}));
+  const wall = new Uint8Array(ownerGrid.length);
 
-  // On ferme uniquement la boucle dessinée par la trace.
-  // Le territoire n'est plus agrandi comme un grand cercle.
-  const xs=polygon.map(p=>p.x);
-  const ys=polygon.map(p=>p.y);
-  const minGX=Math.max(0,worldToGrid(Math.min(...xs)-CELL,0).gx);
-  const maxGX=Math.min(GRID-1,worldToGrid(Math.max(...xs)+CELL,0).gx);
-  const minGY=Math.max(0,worldToGrid(0,Math.min(...ys)-CELL).gy);
-  const maxGY=Math.min(GRID-1,worldToGrid(0,Math.max(...ys)+CELL).gy);
-
-  for(const t of e.trail){
-    const i=gridIndex(t.gx,t.gy);
-    if(i>=0&&inCircleCell(t.gx,t.gy))ownerGrid[i]=e.id;
+  for (let i = 0; i < ownerGrid.length; i++) {
+    if (ownerGrid[i] === entity.id) wall[i] = 1;
   }
 
-  for(let gy=minGY;gy<=maxGY;gy++){
-    for(let gx=minGX;gx<=maxGX;gx++){
-      if(!inCircleCell(gx,gy))continue;
-      const p=gridToWorld(gx,gy);
-      if(pointInPolygon(p.x,p.y,polygon)){
-        ownerGrid[gridIndex(gx,gy)]=e.id;
+  for (const t of entity.trail) {
+    wall[t.index] = 1;
+
+    for (let oy = -1; oy <= 1; oy++) {
+      for (let ox = -1; ox <= 1; ox++) {
+        if (Math.abs(ox) + Math.abs(oy) !== 1) continue;
+
+        const ni = gridIndex(t.gx + ox, t.gy + oy);
+        if (ni >= 0 && playableMask[ni]) wall[ni] = 1;
       }
     }
   }
 
-  recountTerritory();
+  const reachable = new Uint8Array(ownerGrid.length);
+  const queue = new Int32Array(ownerGrid.length);
+  let head = 0;
+  let tail = 0;
 
-  const gained=Math.max(0,e.territoryCount-before);
-  if(gained>0){
-    burst(e.x,e.y,e.color,22);
-    if(e===player){
-      const pct=gained/countPlayableCells()*100;
-      if(pct>.05)toast('+'+pct.toFixed(1)+'% territoire');
-      blip(670,.08,'triangle',.035);
+  function push(index) {
+    if (
+      index < 0 ||
+      reachable[index] ||
+      wall[index] ||
+      !playableMask[index]
+    ) {
+      return;
+    }
+
+    reachable[index] = 1;
+    queue[tail++] = index;
+  }
+
+  for (let gy = 0; gy < GRID; gy++) {
+    for (let gx = 0; gx < GRID; gx++) {
+      const index = gridIndex(gx, gy);
+
+      if (!playableMask[index]) continue;
+
+      const p = gridToWorld(gx, gy);
+      const edge =
+        Math.hypot(p.x, p.y) >
+        WORLD_RADIUS - CELL * 2.2;
+
+      if (edge) push(index);
+    }
+  }
+
+  while (head < tail) {
+    const index = queue[head++];
+    const gx = index % GRID;
+    const gy = Math.floor(index / GRID);
+
+    push(gridIndex(gx + 1, gy));
+    push(gridIndex(gx - 1, gy));
+    push(gridIndex(gx, gy + 1));
+    push(gridIndex(gx, gy - 1));
+  }
+
+  for (let i = 0; i < ownerGrid.length; i++) {
+    if (!playableMask[i]) continue;
+
+    if (wall[i] || !reachable[i]) {
+      ownerGrid[i] = entity.id;
+    }
+  }
+
+  rebuildTerritoryCounts();
+
+  const gained = Math.max(0, (territoryCounts[entity.id] || 0) - before);
+
+  if (gained > 0) {
+    burst(entity.x, entity.y, entity.color, Math.min(30, 10 + gained / 8));
+
+    if (entity === player) {
+      const pct = (gained / playableCells) * 100;
+
+      if (pct >= 0.05) {
+        toast("+" + pct.toFixed(1) + "% territoire");
+      }
+
+      tone(690, 0.08, "triangle", 0.03);
     }
   }
 }
 
-function pointInPolygon(x,y,poly){
-  let inside=false;
-  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-    const xi=poly[i].x,yi=poly[i].y;
-    const xj=poly[j].x,yj=poly[j].y;
-    const intersect=((yi>y)!=(yj>y)) &&
-      (x < (xj-xi)*(y-yi)/((yj-yi)||0.000001)+xi);
-    if(intersect)inside=!inside;
-  }
-  return inside;
-}
+function resolveTrailCuts() {
+  for (const attacker of entities) {
+    if (!attacker.alive || attacker.invuln > 0) continue;
 
-let playableCellsCache=0;
-function countPlayableCells(){
-  if(playableCellsCache)return playableCellsCache;
-  let n=0;
-  for(let gy=0;gy<GRID;gy++)for(let gx=0;gx<GRID;gx++)if(inCircleCell(gx,gy))n++;
-  playableCellsCache=n;
-  return n;
-}
+    for (const victim of entities) {
+      if (
+        !victim.alive ||
+        victim.id === attacker.id ||
+        victim.trail.length === 0
+      ) {
+        continue;
+      }
 
-function floodFillClaim(ownerId){
-  const outside=new Uint8Array(ownerGrid.length);
-  const qx=new Int16Array(ownerGrid.length);
-  const qy=new Int16Array(ownerGrid.length);
-  let head=0,tail=0;
+      for (let i = 0; i < victim.trail.length; i += 1) {
+        const t = victim.trail[i];
 
-  function push(gx,gy){
-    const i=gridIndex(gx,gy);
-    if(i<0||outside[i]||!inCircleCell(gx,gy)||ownerGrid[i]===ownerId)return;
-    outside[i]=1;qx[tail]=gx;qy[tail]=gy;tail++;
-  }
-
-  for(let x=0;x<GRID;x++){push(x,0);push(x,GRID-1)}
-  for(let y=1;y<GRID-1;y++){push(0,y);push(GRID-1,y)}
-
-  while(head<tail){
-    const x=qx[head],y=qy[head];head++;
-    push(x+1,y);push(x-1,y);push(x,y+1);push(x,y-1);
-  }
-
-  for(let gy=0;gy<GRID;gy++){
-    for(let gx=0;gx<GRID;gx++){
-      const i=gridIndex(gx,gy);
-      if(inCircleCell(gx,gy)&&!outside[i])ownerGrid[i]=ownerId;
-    }
-  }
-}
-
-function resolveTrailCollisions(){
-  for(const attacker of players){
-    if(!attacker.alive||attacker.invuln>0)continue;
-
-    for(const victim of players){
-      if(!victim.alive||victim.id===attacker.id||victim.trail.length<1)continue;
-      for(let i=0;i<victim.trail.length;i++){
-        const t=victim.trail[i];
-        if(Math.hypot(attacker.x-t.x,attacker.y-t.y)<attacker.r+CELL*.38){
-          killEntity(victim,attacker);
+        if (
+          Math.hypot(attacker.x - t.x, attacker.y - t.y) <
+          attacker.radius + CELL * 0.35
+        ) {
+          killEntity(victim, attacker);
           break;
         }
       }
     }
   }
+}
 
-  for(let i=0;i<players.length;i++){
-    const a=players[i];
-    if(!a.alive||a.invuln>0)continue;
-    for(let j=i+1;j<players.length;j++){
-      const b=players[j];
-      if(!b.alive||b.invuln>0)continue;
-      if(Math.hypot(a.x-b.x,a.y-b.y)<a.r+b.r-4){
-        if(a.outside&&!b.outside)killEntity(a,b);
-        else if(b.outside&&!a.outside)killEntity(b,a);
-        else{
-          killEntity(a,b);
-          if(b.alive)killEntity(b,a);
+function resolveBodyCollisions() {
+  for (let i = 0; i < entities.length; i++) {
+    const a = entities[i];
+
+    if (!a.alive || a.invuln > 0) continue;
+
+    for (let j = i + 1; j < entities.length; j++) {
+      const b = entities[j];
+
+      if (!b.alive || b.invuln > 0) continue;
+
+      if (
+        Math.hypot(a.x - b.x, a.y - b.y) <
+        a.radius + b.radius - 3
+      ) {
+        if (a.outside && !b.outside) {
+          killEntity(a, b);
+        } else if (b.outside && !a.outside) {
+          killEntity(b, a);
         }
       }
     }
   }
 }
 
-function killEntity(victim,killer){
-  if(!victim.alive)return;
-  victim.alive=false;
-  burst(victim.x,victim.y,victim.color,42);
-  if(killer&&killer.alive){
-    if(killer===player){
-      kills++;
-      currentEarned+=3;
-      toast('Élimination +3 🪙');
-      blip(250,.12,'square',.035);
-    }
+function killEntity(victim, killer) {
+  if (!victim.alive) return;
+
+  victim.alive = false;
+  burst(victim.x, victim.y, victim.color, 34);
+
+  if (killer && killer.alive && killer === player && victim !== player) {
+    kills++;
+    currentEarned += 3;
+    toast("Élimination +3 pièces");
+    tone(250, 0.12, "square", 0.03);
   }
 
-  if(victim===player){
+  if (victim === player) {
     endGame();
-  }else{
-    clearTerritory(victim.id);
-    victim.trail=[];victim.trailCells.clear();
-    victim.respawn=1.3+Math.random()*1.8;
-    recountTerritory();
+    return;
+  }
+
+  clearTerritory(victim.id);
+  victim.trail = [];
+  victim.trailCells.clear();
+  victim.outside = false;
+  victim.respawn = 1.2 + Math.random() * 1.7;
+
+  rebuildTerritoryCounts();
+}
+
+function clearTerritory(id) {
+  for (let i = 0; i < ownerGrid.length; i++) {
+    if (ownerGrid[i] === id) ownerGrid[i] = -1;
   }
 }
 
-function clearTerritory(id){
-  for(let i=0;i<ownerGrid.length;i++)if(ownerGrid[i]===id)ownerGrid[i]=-1;
+function respawnBot(bot) {
+  const a = Math.random() * TAU;
+  const r = 560 + Math.random() * 720;
+
+  bot.x = Math.cos(a) * r;
+  bot.y = Math.sin(a) * r;
+  bot.angle = Math.random() * TAU;
+  bot.dirX = Math.cos(bot.angle);
+  bot.dirY = Math.sin(bot.angle);
+  bot.desiredAngle = bot.angle;
+
+  bot.alive = true;
+  bot.outside = false;
+  bot.trail = [];
+  bot.trailCells.clear();
+  bot.invuln = 1.25;
+
+  paintCircle(bot, 88 + Math.random() * 24);
+  rebuildTerritoryCounts();
 }
 
-function respawnBot(bot){
-  const a=Math.random()*TAU,r=450+Math.random()*700;
-  bot.x=Math.cos(a)*r;bot.y=Math.sin(a)*r;
-  bot.angle=Math.random()*TAU;bot.dirX=Math.cos(bot.angle);bot.dirY=Math.sin(bot.angle);
-  bot.alive=true;bot.outside=false;bot.trail=[];bot.trailCells.clear();bot.invuln=1.2;
-  paintStartArea(bot,85+Math.random()*22);
-  recountTerritory();
-}
+function updateCoins(dt) {
+  for (const coin of coins) coin.spin += dt * 4.5;
 
-function updateCoins(dt){
-  for(const c of coins)c.spin+=dt*4;
-  for(let i=coins.length-1;i>=0;i--){
-    const c=coins[i];
-    if(player.alive&&Math.hypot(player.x-c.x,player.y-c.y)<player.r+10){
-      coins.splice(i,1);currentEarned++;
-      burst(c.x,c.y,'#ffca35',8);
-      blip(900,.04,'sine',.018);
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const coin = coins[i];
+
+    if (
+      player.alive &&
+      Math.hypot(player.x - coin.x, player.y - coin.y) <
+        player.radius + 11
+    ) {
+      coins.splice(i, 1);
+      currentEarned++;
+      burst(coin.x, coin.y, "#ffd242", 7);
+      tone(920, 0.04, "sine", 0.014);
     }
   }
-  while(coins.length<125)coins.push(spawnCoin());
+
+  while (coins.length < 90) coins.push(spawnCoin());
 }
 
-function burst(x,y,color,count){
-  for(let i=0;i<count;i++){
-    const a=Math.random()*TAU,s=40+Math.random()*190;
-    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.25+Math.random()*.55,max:.8,color,size:2+Math.random()*5});
+function burst(x, y, color, count) {
+  const safeCount = Math.min(45, Math.max(0, Math.floor(count)));
+
+  for (let i = 0; i < safeCount; i++) {
+    const a = Math.random() * TAU;
+    const speed = 40 + Math.random() * 155;
+
+    particles.push({
+      x,
+      y,
+      vx: Math.cos(a) * speed,
+      vy: Math.sin(a) * speed,
+      life: 0.35 + Math.random() * 0.45,
+      maxLife: 0.8,
+      color,
+      size: 2 + Math.random() * 4
+    });
   }
 }
-function updateParticles(dt){
-  for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.97;p.vy*=.97;p.life-=dt}
-  particles=particles.filter(p=>p.life>0);
+
+function updateParticles(dt) {
+  for (const p of particles) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vx *= 0.965;
+    p.vy *= 0.965;
+    p.life -= dt;
+  }
+
+  particles = particles.filter((p) => p.life > 0);
 }
 
-function toast(text){
-  toastEl.textContent=text;toastEl.classList.add('show');toastTimer=1.4;
+function toast(text) {
+  toastEl.textContent = text;
+  toastEl.classList.add("show");
+  toastTimer = 1.35;
 }
 
-function endGame(){
-  if(!running)return;
-  running=false;
-  const earned=currentEarned+Math.floor(score*.7);
-  totalCoins+=earned;
-  bestScore=Math.max(bestScore,score);
-  bestKills=Math.max(bestKills,kills);
-  localStorage.setItem('ptpCoins',totalCoins);
-  localStorage.setItem('ptpBest',bestScore.toFixed(2));
-  localStorage.setItem('ptpBestKills',bestKills);
-  finalScoreEl.textContent=score.toFixed(1)+'%';
-  finalKillsEl.textContent=kills;
-  earnedCoinsEl.textContent=earned;
+function endGame() {
+  if (!running) return;
+
+  running = false;
+  dangerText.classList.remove("show");
+
+  const earned = currentEarned + Math.floor(playerPercent * 0.6);
+
+  totalCoins += earned;
+  bestScore = Math.max(bestScore, playerPercent);
+  bestKills = Math.max(bestKills, kills);
+
+  localStorage.setItem("ptpCoins", String(totalCoins));
+  localStorage.setItem("ptpBest", bestScore.toFixed(2));
+  localStorage.setItem("ptpBestKills", String(bestKills));
+
+  finalScoreEl.textContent = playerPercent.toFixed(1) + "%";
+  finalKillsEl.textContent = kills;
+  earnedCoinsEl.textContent = earned;
+
   updateMenuStats();
-  setTimeout(()=>show(gameover),180);
+
+  setTimeout(() => show(gameover), 170);
 }
 
-function updateMenuStats(){
-  menuCoins.textContent=totalCoins;
-  bestScoreEl.textContent=bestScore.toFixed(1)+'%';
-  bestKillsEl.textContent=bestKills;
+function updateHud(updateLeaderboard) {
+  territoryEl.textContent = playerPercent.toFixed(1) + "%";
+  killsEl.textContent = kills;
+  coinsEl.textContent = totalCoins + currentEarned;
+
+  if (!updateLeaderboard) return;
+
+  const ranking = entities
+    .filter((e) => e.alive)
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      score: ((territoryCounts[e.id] || 0) / playableCells) * 100
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  leaderboardList.innerHTML = ranking
+    .slice(0, 10)
+    .map(
+      (r) =>
+        '<li class="' +
+        (r.id === 0 ? "me" : "") +
+        '">' +
+        escapeHtml(r.name) +
+        " <b>" +
+        r.score.toFixed(1) +
+        "%</b></li>"
+    )
+    .join("");
 }
-updateMenuStats();
 
-function updateHud(){
-  recountTerritory();
-  score=player.territoryCount/countPlayableCells()*100;
-  territoryEl.textContent=score.toFixed(1)+'%';
-  killsEl.textContent=kills;
-  coinsEl.textContent=totalCoins+currentEarned;
-
-  const ranks=players.filter(e=>e.alive).map(e=>({
-    id:e.id,name:e.name,score:e.territoryCount/countPlayableCells()*100
-  })).sort((a,b)=>b.score-a.score);
-
-  leaderboardList.innerHTML=ranks.map(r=>'<li class="'+(r.id===0?'me':'')+'">'+escapeHtml(r.name)+' <b>'+r.score.toFixed(1)+'%</b></li>').join('');
+function escapeHtml(value) {
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[char]
+  );
 }
 
-function escapeHtml(s){
-  return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function toScreen(x, y) {
+  return {
+    x: (x - camera.x) * camera.zoom + W / 2,
+    y: (y - camera.y) * camera.zoom + H / 2
+  };
 }
 
-function screen(x,y){
-  return {x:(x-camera.x)*camera.zoom+W/2,y:(y-camera.y)*camera.zoom+H/2};
-}
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#c8e8ef";
+  ctx.fillRect(0, 0, W, H);
 
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#171d28';ctx.fillRect(0,0,W,H);
+  const center = toScreen(0, 0);
 
-  const center=screen(0,0);
   ctx.save();
-  ctx.beginPath();ctx.arc(center.x,center.y,WORLD_RADIUS*camera.zoom,0,TAU);ctx.clip();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, WORLD_RADIUS * camera.zoom, 0, TAU);
+  ctx.clip();
 
-  ctx.fillStyle='#dbe4e8';
-  ctx.fillRect(center.x-WORLD_RADIUS*camera.zoom,center.y-WORLD_RADIUS*camera.zoom,WORLD_RADIUS*2*camera.zoom,WORLD_RADIUS*2*camera.zoom);
+  ctx.fillStyle = "#eef4f5";
+  ctx.fillRect(
+    center.x - WORLD_RADIUS * camera.zoom,
+    center.y - WORLD_RADIUS * camera.zoom,
+    WORLD_RADIUS * 2 * camera.zoom,
+    WORLD_RADIUS * 2 * camera.zoom
+  );
 
-  drawGridLines();
+  drawGroundPattern();
   drawOwnedCells();
   drawCoins();
   drawTrails();
   drawEntities();
   drawParticles();
+
   ctx.restore();
 
-  ctx.beginPath();ctx.arc(center.x,center.y,WORLD_RADIUS*camera.zoom,0,TAU);
-  ctx.strokeStyle='#ffffff66';ctx.lineWidth=8;ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, WORLD_RADIUS * camera.zoom, 0, TAU);
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, WORLD_RADIUS * camera.zoom + 4, 0, TAU);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = "#99b5be";
+  ctx.stroke();
 
   drawMinimap();
 
-  const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.22,W/2,H/2,Math.max(W,H)*.72);
-  vg.addColorStop(0,'#0000');vg.addColorStop(1,'#0006');
-  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  const vignette = ctx.createRadialGradient(
+    W / 2,
+    H / 2,
+    Math.min(W, H) * 0.2,
+    W / 2,
+    H / 2,
+    Math.max(W, H) * 0.72
+  );
+
+  vignette.addColorStop(0, "#00000000");
+  vignette.addColorStop(1, "#213b4d22");
+
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, W, H);
 }
 
-function drawGridLines(){
-  const step=72;
-  ctx.strokeStyle='#7d8f9920';ctx.lineWidth=1;
-  for(let x=-WORLD_RADIUS;x<=WORLD_RADIUS;x+=step){
-    const a=screen(x,-WORLD_RADIUS),b=screen(x,WORLD_RADIUS);
-    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-  }
-  for(let y=-WORLD_RADIUS;y<=WORLD_RADIUS;y+=step){
-    const a=screen(-WORLD_RADIUS,y),b=screen(WORLD_RADIUS,y);
-    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-  }
-}
+function drawGroundPattern() {
+  const step = 88;
+  ctx.strokeStyle = "#9fb4ba22";
+  ctx.lineWidth = 1;
 
-function drawOwnedCells(){
-  const s=CELL*camera.zoom+1;
-  for(let gy=0;gy<GRID;gy++){
-    for(let gx=0;gx<GRID;gx++){
-      const i=gridIndex(gx,gy),owner=ownerGrid[i];
-      if(owner<0||!players[owner])continue;
-      const p=gridToWorld(gx,gy),sp=screen(p.x-CELL/2,p.y-CELL/2);
-      if(sp.x+s<0||sp.y+s<0||sp.x>W||sp.y>H)continue;
-      ctx.fillStyle=players[owner].color;
-      ctx.globalAlpha=.72;
-      ctx.fillRect(sp.x,sp.y,s,s);
-    }
-  }
-  ctx.globalAlpha=1;
-}
+  for (let x = -WORLD_RADIUS; x <= WORLD_RADIUS; x += step) {
+    const a = toScreen(x, -WORLD_RADIUS);
+    const b = toScreen(x, WORLD_RADIUS);
 
-function drawTrails(){
-  for(const e of players){
-    if(!e.alive||e.trail.length<1)continue;
     ctx.beginPath();
-    let p=screen(e.trail[0].x,e.trail[0].y);ctx.moveTo(p.x,p.y);
-    for(let i=1;i<e.trail.length;i++){
-      p=screen(e.trail[i].x,e.trail[i].y);ctx.lineTo(p.x,p.y);
-    }
-    p=screen(e.x,e.y);ctx.lineTo(p.x,p.y);
-    ctx.strokeStyle=e.color;
-    ctx.lineWidth=CELL*.72*camera.zoom;
-    ctx.lineCap='butt';ctx.lineJoin='round';
-    ctx.globalAlpha=.9;ctx.stroke();ctx.globalAlpha=1;
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+
+  for (let y = -WORLD_RADIUS; y <= WORLD_RADIUS; y += step) {
+    const a = toScreen(-WORLD_RADIUS, y);
+    const b = toScreen(WORLD_RADIUS, y);
+
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
   }
 }
 
-function drawCoins(){
-  for(const c of coins){
-    const p=screen(c.x,c.y);
-    if(p.x<-20||p.y<-20||p.x>W+20||p.y>H+20)continue;
-    ctx.save();ctx.translate(p.x,p.y);ctx.scale(.7+.3*Math.abs(Math.cos(c.spin)),1);
-    ctx.beginPath();ctx.arc(0,0,7*camera.zoom,0,TAU);
-    ctx.fillStyle='#ffc628';ctx.fill();
-    ctx.strokeStyle='#fff0a8';ctx.lineWidth=2;ctx.stroke();
+function drawOwnedCells() {
+  const size = CELL * camera.zoom + 1.4;
+
+  for (let gy = 0; gy < GRID; gy++) {
+    for (let gx = 0; gx < GRID; gx++) {
+      const index = gridIndex(gx, gy);
+      const owner = ownerGrid[index];
+
+      if (owner < 0 || !entities[owner]) continue;
+
+      const p = gridToWorld(gx, gy);
+      const screen = toScreen(p.x - CELL / 2, p.y - CELL / 2);
+
+      if (
+        screen.x + size < -10 ||
+        screen.y + size < -10 ||
+        screen.x > W + 10 ||
+        screen.y > H + 10
+      ) {
+        continue;
+      }
+
+      ctx.globalAlpha = 0.84;
+      ctx.fillStyle = entities[owner].color;
+      ctx.fillRect(screen.x, screen.y, size, size);
+    }
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function drawTrails() {
+  for (const entity of entities) {
+    if (!entity.alive || entity.trail.length === 0) continue;
+
+    ctx.beginPath();
+
+    const first = toScreen(entity.trail[0].x, entity.trail[0].y);
+    ctx.moveTo(first.x, first.y);
+
+    for (let i = 1; i < entity.trail.length; i++) {
+      const point = toScreen(entity.trail[i].x, entity.trail[i].y);
+      ctx.lineTo(point.x, point.y);
+    }
+
+    const current = toScreen(entity.x, entity.y);
+    ctx.lineTo(current.x, current.y);
+
+    ctx.strokeStyle = entity.color;
+    ctx.lineWidth = CELL * 0.72 * camera.zoom;
+    ctx.lineCap = "square";
+    ctx.lineJoin = "round";
+    ctx.globalAlpha = 0.9;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawCoins() {
+  for (const coin of coins) {
+    const p = toScreen(coin.x, coin.y);
+
+    if (p.x < -20 || p.y < -20 || p.x > W + 20 || p.y > H + 20) {
+      continue;
+    }
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.scale(0.6 + Math.abs(Math.cos(coin.spin)) * 0.4, 1);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 7.5 * camera.zoom, 0, TAU);
+    ctx.fillStyle = "#ffd242";
+    ctx.fill();
+
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#f2ae16";
+    ctx.stroke();
+
     ctx.restore();
   }
 }
 
-function drawEntities(){
-  for(const e of players){
-    if(!e.alive)continue;
-    const p=screen(e.x,e.y),r=e.r*camera.zoom;
-    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(e.angle);
-    if(e.invuln>0&&Math.floor(e.invuln*12)%2===0)ctx.globalAlpha=.4;
-    ctx.shadowColor='#0006';ctx.shadowBlur=9;
-    ctx.fillStyle=e.color;
-    const rr=5*camera.zoom;
-    roundRect(ctx,-r,-r,r*2,r*2,rr);ctx.fill();
-    ctx.fillStyle='#fff';
-    ctx.shadowBlur=0;
-    ctx.fillRect(r*.15,-r*.45,r*.34,r*.34);
-    ctx.fillRect(r*.15,r*.11,r*.34,r*.34);
+function drawEntities() {
+  for (const entity of entities) {
+    if (!entity.alive) continue;
+
+    const p = toScreen(entity.x, entity.y);
+    const radius = entity.radius * camera.zoom;
+
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(entity.angle);
+
+    if (entity.invuln > 0 && Math.floor(entity.invuln * 14) % 2 === 0) {
+      ctx.globalAlpha = 0.35;
+    }
+
+    ctx.fillStyle = entity.color;
+    ctx.shadowColor = "#0000002f";
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 4;
+
+    roundedRectPath(
+      ctx,
+      -radius,
+      -radius,
+      radius * 2,
+      radius * 2,
+      radius * 0.32
+    );
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    ctx.fillStyle = "#fff";
+
+    roundedRectPath(
+      ctx,
+      radius * 0.05,
+      -radius * 0.5,
+      radius * 0.42,
+      radius * 0.38,
+      radius * 0.12
+    );
+    ctx.fill();
+
+    roundedRectPath(
+      ctx,
+      radius * 0.05,
+      radius * 0.12,
+      radius * 0.42,
+      radius * 0.38,
+      radius * 0.12
+    );
+    ctx.fill();
+
     ctx.restore();
 
-    if(camera.zoom>.72){
-      ctx.font='700 '+Math.max(10,11*camera.zoom)+'px Arial';
-      ctx.textAlign='center';ctx.fillStyle='#26313b';
-      ctx.fillText(e.name,p.x,p.y-r-7);
+    ctx.font = "900 " + Math.max(10, 11 * camera.zoom) + "px Arial";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#31444b";
+    ctx.fillText(entity.name, p.x, p.y - radius - 8);
+  }
+}
+
+function roundedRectPath(context, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2);
+
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.arcTo(x + w, y, x + w, y + h, radius);
+  context.arcTo(x + w, y + h, x, y + h, radius);
+  context.arcTo(x, y + h, x, y, radius);
+  context.arcTo(x, y, x + w, y, radius);
+  context.closePath();
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    const screen = toScreen(p.x, p.y);
+
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(screen.x, screen.y, p.size, p.size);
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function drawMinimap() {
+  const width = minimap.width;
+  const height = minimap.height;
+  const cx = width / 2;
+  const cy = height / 2;
+  const scale = (width * 0.46) / WORLD_RADIUS;
+
+  mctx.clearRect(0, 0, width, height);
+
+  mctx.save();
+  mctx.beginPath();
+  mctx.arc(cx, cy, width * 0.48, 0, TAU);
+  mctx.clip();
+
+  mctx.fillStyle = "#eef4f5";
+  mctx.fillRect(0, 0, width, height);
+
+  const skip = 4;
+
+  for (let gy = 0; gy < GRID; gy += skip) {
+    for (let gx = 0; gx < GRID; gx += skip) {
+      const owner = ownerGrid[gridIndex(gx, gy)];
+
+      if (owner < 0 || !entities[owner]) continue;
+
+      const p = gridToWorld(gx, gy);
+
+      mctx.globalAlpha = 0.85;
+      mctx.fillStyle = entities[owner].color;
+      mctx.fillRect(
+        cx + p.x * scale,
+        cy + p.y * scale,
+        CELL * scale * skip + 1,
+        CELL * scale * skip + 1
+      );
     }
   }
-}
 
-function roundRect(c,x,y,w,h,r){
-  c.beginPath();c.roundRect(x,y,w,h,r);
-}
+  mctx.globalAlpha = 1;
 
-function drawParticles(){
-  for(const p of particles){
-    const s=screen(p.x,p.y);
-    ctx.globalAlpha=Math.max(0,p.life/p.max);
-    ctx.fillStyle=p.color;ctx.fillRect(s.x,s.y,p.size,p.size);
+  for (const entity of entities) {
+    if (!entity.alive) continue;
+
+    mctx.beginPath();
+    mctx.arc(
+      cx + entity.x * scale,
+      cy + entity.y * scale,
+      entity === player ? 4 : 2.3,
+      0,
+      TAU
+    );
+    mctx.fillStyle = entity.color;
+    mctx.fill();
   }
-  ctx.globalAlpha=1;
-}
 
-function drawMinimap(){
-  const mw=minimap.width,mh=minimap.height,cx=mw/2,cy=mh/2;
-  mctx.clearRect(0,0,mw,mh);
-  mctx.save();mctx.beginPath();mctx.arc(cx,cy,mw*.48,0,TAU);mctx.clip();
-  mctx.fillStyle='#dbe4e8';mctx.fillRect(0,0,mw,mh);
-
-  const scale=(mw*.46)/WORLD_RADIUS;
-  const skip=3;
-  for(let gy=0;gy<GRID;gy+=skip){
-    for(let gx=0;gx<GRID;gx+=skip){
-      const own=ownerGrid[gridIndex(gx,gy)];
-      if(own<0||!players[own])continue;
-      const p=gridToWorld(gx,gy);
-      mctx.fillStyle=players[own].color;mctx.globalAlpha=.8;
-      mctx.fillRect(cx+p.x*scale,cy+p.y*scale,CELL*scale*skip+1,CELL*scale*skip+1);
-    }
-  }
-  mctx.globalAlpha=1;
-  for(const e of players){
-    if(!e.alive)continue;
-    mctx.beginPath();mctx.arc(cx+e.x*scale,cy+e.y*scale,e===player?4:2.5,0,TAU);
-    mctx.fillStyle=e.color;mctx.fill();
-  }
   mctx.restore();
 }
 
-addEventListener('keydown',e=>{
-  const k=e.key.toLowerCase();keys[k]=true;
-  if(['arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
-});
-addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+addEventListener("keydown", (event) => {
+  const key = event.key.toLowerCase();
+  keys[key] = true;
 
-canvas.addEventListener('pointerdown',e=>{
-  pointerActive=true;
-  canvas.setPointerCapture?.(e.pointerId);
-  steerTo(e);
+  if (
+    key === "arrowup" ||
+    key === "arrowdown" ||
+    key === "arrowleft" ||
+    key === "arrowright"
+  ) {
+    event.preventDefault();
+  }
 });
-canvas.addEventListener('pointermove',e=>{if(pointerActive)steerTo(e)});
-canvas.addEventListener('pointerup',()=>pointerActive=false);
-canvas.addEventListener('pointercancel',()=>pointerActive=false);
 
-function steerTo(e){
-  const dx=e.clientX-W/2,dy=e.clientY-H/2;
-  if(Math.hypot(dx,dy)<20)return;
-  setDirection(player,dx,dy);
+addEventListener("keyup", (event) => {
+  keys[event.key.toLowerCase()] = false;
+});
+
+canvas.addEventListener("pointerdown", (event) => {
+  pointerActive = true;
+  pointerId = event.pointerId;
+
+  try {
+    canvas.setPointerCapture(event.pointerId);
+  } catch {}
+
+  steerPointer(event);
+});
+
+canvas.addEventListener("pointermove", (event) => {
+  if (pointerActive && event.pointerId === pointerId) {
+    steerPointer(event);
+  }
+});
+
+function endPointer(event) {
+  if (event.pointerId === pointerId) {
+    pointerActive = false;
+    pointerId = null;
+  }
 }
 
-playBtn.onclick=start;
-retryBtn.onclick=start;
-menuBtn.onclick=()=>show(menu);
-quitBtn.onclick=()=>{running=false;show(menu)};
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
 
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&running)last=performance.now();
+function steerPointer(event) {
+  if (!player || !player.alive) return;
+
+  const dx = event.clientX - W / 2;
+  const dy = event.clientY - H / 2;
+
+  if (Math.hypot(dx, dy) < 18) return;
+
+  setDirection(player, dx, dy);
+}
+
+playBtn.onclick = startGame;
+retryBtn.onclick = startGame;
+
+menuBtn.onclick = () => {
+  running = false;
+  show(menu);
+};
+
+quitBtn.onclick = () => {
+  running = false;
+  show(menu);
+};
+
+skinsBtn.onclick = () => {
+  colorPicker.classList.toggle("hidden");
+};
+
+soundBtn.onclick = () => {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem("ptpSound", soundEnabled ? "1" : "0");
+  updateMenuStats();
+
+  if (soundEnabled) tone(620, 0.05, "square", 0.02);
+};
+
+settingsBtn.onclick = () => {
+  const ok = confirm("Réinitialiser les records et les pièces de PaperTaPeur ?");
+
+  if (!ok) return;
+
+  totalCoins = 0;
+  bestScore = 0;
+  bestKills = 0;
+
+  localStorage.removeItem("ptpCoins");
+  localStorage.removeItem("ptpBest");
+  localStorage.removeItem("ptpBestKills");
+
+  updateMenuStats();
+};
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && running) {
+    last = performance.now();
+  }
 });
