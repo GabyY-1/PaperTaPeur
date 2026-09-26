@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="./css/style.css?v=20260926-leaderboards1">
+  <link rel="stylesheet" href="./css/style.css?v=20260926-leaderboards2">
 </head>
 <body>
 <main id="app">
@@ -294,7 +294,7 @@
     </div>
 
         <nav class="game-bottom-nav" aria-label="Menu principal">
-      <button class="bottom-nav-item active" type="button" data-bottom-action="home">
+      <button class="bottom-nav-item" type="button" data-bottom-action="home">
         <span class="bottom-nav-icon home-icon"></span><strong>ACCUEIL</strong>
       </button>
       <button class="bottom-nav-item" type="button" data-bottom-action="skins">
@@ -698,7 +698,7 @@
 </main>
 
 <script src="js/profile.js?v=20260926-subranks1"></script>
-<script src="js/main.js?v=20260926-leaderboards1"></script>
+<script src="js/main.js?v=20260926-leaderboards2"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
@@ -706,7 +706,7 @@
   supabaseScript.async = true;
   supabaseScript.onload = () => {
     const cloudScript = document.createElement("script");
-    cloudScript.src = "js/cloud.js?v=20260926-leaderboards1";
+    cloudScript.src = "js/cloud.js?v=20260926-leaderboards2";
     cloudScript.onload = () => window.dispatchEvent(new Event("PTPCloudReady"));
     document.body.appendChild(cloudScript);
   };
