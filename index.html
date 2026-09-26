@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>PaperTaPeur</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=20260926-modes1">
+  <link rel="stylesheet" href="css/style.css?v=20260926-maps-leaderboard2">
 </head>
 <body>
 <main id="app">
@@ -30,10 +30,14 @@
 
       <div class="competitive-brand">
         <strong>PaperTaPeur</strong>
-        
+        <span>COMPÉTITIF</span>
       </div>
 
-      
+      <div class="season-box">
+        <small>SAISON 1</small>
+        <strong>CLASSÉ</strong>
+      </div>
+    </header>
 
     <div class="competitive-layout">
       <section class="left-column">
@@ -68,8 +72,8 @@
             <strong id="topLevel">1</strong>
           </div>
           <div class="stat-card">
-            <small>PARTICIPANTS</small>
-            <strong>8</strong>
+            <small>MATCHS JOUÉS</small>
+            <strong id="menuGames">0</strong>
           </div>
         </div>
       </section>
@@ -91,6 +95,24 @@
             <button class="mode-option" data-mode="conquest">
               <strong>CONQUÊTE</strong><small>60% pour gagner</small>
             </button>
+          </div>
+
+          <div class="selector-block">
+            <div class="selector-heading">
+              <small>CARTE</small>
+              <strong id="mapName">Arène</strong>
+            </div>
+            <div class="map-selector" id="mapSelector">
+              <button class="map-option active" data-map="arena">
+                <strong>ARÈNE</strong><small>Équilibrée · taille standard</small>
+              </button>
+              <button class="map-option" data-map="compact">
+                <strong>COMPACT</strong><small>Petite · combats rapides</small>
+              </button>
+              <button class="map-option" data-map="titan">
+                <strong>TITAN</strong><small>Grande · contrôle long</small>
+              </button>
+            </div>
           </div>
 
           <button id="previewPaper" class="competitive-paper" aria-label="Joueur">
@@ -116,12 +138,29 @@
       </section>
 
       <section class="right-column">
-        
+        <div class="map-card">
+          <div class="section-kicker">CARTE SÉLECTIONNÉE</div>
+          <h2 id="mapCardTitle">Arène</h2>
+          <p id="mapCardDescription">Carte équilibrée pour le mode compétitif standard.</p>
+          <div class="match-card">
+            <div><span>TAILLE</span><strong id="mapSizeLabel">Standard</strong></div>
+            <div><span>JOUEURS</span><strong>8</strong></div>
+            <div><span>OBJECTIF</span><strong id="mapObjectiveLabel">Contrôle maximal</strong></div>
+          </div>
+        </div>
 
-        <div class="match-card">
-          <div><span>CARTE</span><strong>Arène circulaire</strong></div>
-          <div><span>JOUEURS</span><strong>8</strong></div>
-          <div><span>OBJECTIF</span><strong>1re place</strong></div>
+        <div class="real-leaderboard-card">
+          <div class="leaderboard-head">
+            <div>
+              <small>MEILLEURS JOUEURS RÉELS</small>
+              <strong id="leaderboardMapName">Arène</strong>
+            </div>
+            <span id="leaderboardStatus">Supabase</span>
+          </div>
+          <ol id="realMapLeaderboard">
+            <li class="empty">Aucun score enregistré pour cette carte.</li>
+          </ol>
+          <p id="leaderboardLoginHint">Connecte-toi pour apparaître dans ce classement.</p>
         </div>
       </section>
     </div>
@@ -274,7 +313,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/profile.js?v=20260926-competitive1"></script>
-<script src="js/cloud.js?v=20260926-competitive1"></script>
-<script src="js/main.js?v=20260926-mouse100"></script>
+<script src="js/cloud.js?v=20260926-maps-leaderboard2"></script>
+<script src="js/main.js?v=20260926-maps-leaderboard2"></script>
 </body>
 </html>
