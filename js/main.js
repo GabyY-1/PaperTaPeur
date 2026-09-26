@@ -614,8 +614,12 @@ function update(dt) {
   for (const entity of entities) {
     if (!entity.alive) {
       if (entity.isBot) {
-        entity.respawn -= dt;
-        if (entity.respawn <= 0) respawnBot(entity);
+        if (playerPercent >= 80) {
+          entity.respawn = Infinity;
+        } else {
+          entity.respawn -= dt;
+          if (entity.respawn <= 0) respawnBot(entity);
+        }
       }
       continue;
     }
@@ -1081,6 +1085,12 @@ function clearTerritory(id) {
 }
 
 function respawnBot(bot) {
+  if (playerPercent >= 80) {
+    bot.alive = false;
+    bot.respawn = Infinity;
+    return;
+  }
+
   const spawn = findSpawn(bot.id);
 
   bot.x = spawn.x;
