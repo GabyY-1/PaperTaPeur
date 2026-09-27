@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="./css/style.css?v=20260927-worldclassv5">
+  <link rel="stylesheet" href="./css/style.css?v=20260927-graphicsv6">
 </head>
 <body>
 <main id="app">
@@ -599,38 +599,6 @@
       <span id="modeHudDetail">8 joueurs</span>
     </div>
 
-    <div id="matchIntro" class="match-intro">
-      <small id="matchIntroMap">ARÈNE</small>
-      <strong id="matchIntroMode">CLASSÉ</strong>
-      <span>PRENDS LE CONTRÔLE</span>
-    </div>
-
-    <div id="comboHud" class="combo-hud">
-      <small>MOMENTUM</small>
-      <strong><span id="comboValue">x1</span> <em id="comboReason">PRÊT</em></strong>
-      <div><i id="comboBar"></i></div>
-    </div>
-
-    <div id="objectivesHud" class="objectives-hud">
-      <div class="objectives-head"><small>OBJECTIFS DU MATCH</small><span id="objectiveCount">0/3</span></div>
-      <div class="objective-row" data-objective="territory10"><i></i><span>Atteindre 10% de territoire</span><b>+5</b></div>
-      <div class="objective-row" data-objective="kills2"><i></i><span>Faire 2 éliminations</span><b>+8</b></div>
-      <div class="objective-row" data-objective="territory30"><i></i><span>Atteindre 30% de territoire</span><b>+12</b></div>
-    </div>
-
-    <div id="riskHud" class="risk-hud">
-      <span>RISQUE DE TRACE</span>
-      <div><i id="riskBar"></i></div>
-      <strong id="riskLabel">SÛR</strong>
-    </div>
-
-    <div id="milestoneBanner" class="milestone-banner">
-      <small>DOMINATION</small>
-      <strong id="milestoneText">25% DU TERRITOIRE</strong>
-    </div>
-
-    <div id="impactFlash" class="impact-flash"></div>
-
     <div id="hud">
       <div class="hud-stat">☠ <strong id="kills">0</strong></div>
       <div class="score-card">
@@ -725,19 +693,10 @@
       <div class="gameover-kicker">PARTIE TERMINÉE</div>
       <div id="gameoverPaper" class="gameover-paper"><span></span><span></span></div>
 
-      <div class="performance-grade">
-        <small>PERFORMANCE</small>
-        <strong id="performanceGrade">C</strong>
-        <span id="performanceTitle">PARTIE TERMINÉE</span>
-      </div>
-
       <div class="result-grid">
         <div><small>TERRITOIRE</small><strong id="finalScore">0.0%</strong></div>
         <div><small>ÉLIMINATIONS</small><strong id="finalKills">0</strong></div>
         <div><small>RANG</small><strong id="finalRank">Bronze</strong></div>
-        <div><small>MEILLEUR COMBO</small><strong id="finalBestCombo">x1</strong></div>
-        <div><small>OBJECTIFS</small><strong id="finalObjectives">0/3</strong></div>
-        <div><small>RÉCOMPENSE</small><strong id="finalReward">0</strong></div>
       </div>
 
       <span id="earnedCoins" class="hidden">0</span>
@@ -755,7 +714,7 @@
 </main>
 
 <script src="js/profile.js?v=20260927-tapeur1"></script>
-<script src="js/main.js?v=20260927-worldclassv5"></script>
+<script src="js/main.js?v=20260927-graphicsv6"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
