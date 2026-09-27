@@ -150,6 +150,10 @@ const profilePageGames = document.getElementById("profilePageGames");
 const profilePageKills = document.getElementById("profilePageKills");
 const profilePageBest = document.getElementById("profilePageBest");
 const profileCloudBtn = document.getElementById("profileCloudBtn");
+const quickRank = document.getElementById("quickRank");
+const quickRP = document.getElementById("quickRP");
+const quickLevel = document.getElementById("quickLevel");
+const quickBest = document.getElementById("quickBest");
 const openLeaderboardPageBtn = document.getElementById("openLeaderboardPageBtn");
 const leaderboardTabs = document.getElementById("leaderboardTabs");
 const leaderboardMapTabs = document.getElementById("leaderboardMapTabs");
@@ -3329,6 +3333,11 @@ document.addEventListener("click", (event) => {
 const originalUpdateMenuStats = updateMenuStats;
 updateMenuStats = function() {
   originalUpdateMenuStats();
+  const quickRankData = window.PTPProfile.getRank(profile.rankPoints);
+  if (quickRank) quickRank.textContent = quickRankData.fullName;
+  if (quickRP) quickRP.textContent = profile.rankPoints;
+  if (quickLevel) quickLevel.textContent = profile.level;
+  if (quickBest) quickBest.textContent = Number(profile.bestTerritory || bestScore || 0).toFixed(1) + "%";
   applyProfileCustom();
   if (profilePage?.classList.contains("active")) renderProfilePage();
   if (skinsPage?.classList.contains("active")) renderSkinsPage();
