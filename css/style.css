@@ -1787,3 +1787,268 @@ button{cursor:pointer}
   .leaderboard-full-row.general-row{min-height:64px}
   .leaderboard-general-stats{gap:9px;margin-top:4px}
 }
+
+
+/* ===== MEGA V4 — GAME POLISH ===== */
+:root{
+  --ptp-panel:rgba(255,255,255,.94);
+  --ptp-panel-strong:#ffffff;
+  --ptp-ink:#17366f;
+  --ptp-muted:#6e8aa4;
+  --ptp-cyan:#54c4ff;
+  --ptp-yellow:#ffd84d;
+  --ptp-shadow-soft:0 12px 32px rgba(50,99,132,.12);
+  --ptp-shadow-card:0 20px 52px rgba(43,94,129,.16);
+}
+
+#menu{
+  background:
+    radial-gradient(circle at 50% -12%,rgba(108,207,255,.35),transparent 38%),
+    radial-gradient(circle at 12% 38%,rgba(112,210,255,.12),transparent 30%),
+    linear-gradient(180deg,#f6fcff 0%,#eaf7ff 42%,#f7fcff 100%)!important;
+}
+#menu .competitive-bg:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(115deg,transparent 0 45%,rgba(255,255,255,.55) 45.5% 46%,transparent 46.5% 100%);
+  background-size:280px 280px;
+  opacity:.24;
+  animation:ptpSweep 20s linear infinite;
+}
+@keyframes ptpSweep{to{background-position:560px 0}}
+
+.competitive-header{
+  height:78px!important;
+  border-bottom:1px solid rgba(168,211,235,.9)!important;
+  background:rgba(249,253,255,.9)!important;
+  box-shadow:0 12px 34px rgba(46,92,125,.09)!important;
+}
+.account-button{
+  min-width:160px!important;
+  border:1px solid #c3ddeb!important;
+  background:linear-gradient(180deg,#fff,#f3faff)!important;
+}
+.account-avatar-mini{
+  box-shadow:0 4px 0 rgba(68,83,96,.18),0 8px 18px rgba(58,100,128,.15)!important;
+}
+.header-status-pill{
+  height:36px;
+  display:flex;align-items:center;gap:6px;
+  padding:0 10px;
+  border-radius:999px;
+  background:#eafff2;
+  border:1px solid #b6e8c9;
+  color:#2f9161;
+  font-size:8px;
+  font-weight:1000;
+  letter-spacing:.08em;
+}
+.header-status-pill i{
+  width:7px;height:7px;border-radius:50%;
+  background:#36bd77;
+  box-shadow:0 0 0 4px rgba(54,189,119,.13);
+}
+
+.home-quickbar{
+  position:absolute;
+  z-index:12;
+  top:83px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(900px,calc(100% - 40px));
+  height:40px;
+  padding:0 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border:1px solid rgba(182,215,234,.95);
+  border-radius:14px;
+  background:rgba(255,255,255,.91);
+  box-shadow:0 10px 28px rgba(49,95,126,.1);
+  backdrop-filter:blur(12px);
+}
+.home-quickbar>div{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.home-quickbar small{font-size:7px;font-weight:1000;letter-spacing:.08em;color:#7893aa}
+.home-quickbar strong{font-size:11px;color:#275f89}
+.home-quickbar>i{width:1px;height:18px;background:#d4e6f0}
+.quickbar-tip{margin-left:auto;font-size:7px;font-weight:900;color:#7692a9;white-space:nowrap}
+
+@media(min-width:901px){
+  .home-dashboard{
+    top:0;
+    padding-top:50px!important;
+    height:calc(100dvh - 78px - 88px)!important;
+  }
+}
+
+.rank-card-main,.arena-card,.map-card,.real-leaderboard-card,
+.stat-card,.hub-action-card,.hub-info-card,.profile-custom-card,.profile-stats-card,
+.leaderboard-main-card,.skin-showcase-card{
+  box-shadow:var(--ptp-shadow-card)!important;
+}
+.rank-card-main,.map-card,.real-leaderboard-card,.arena-card{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.99),rgba(241,249,255,.97))!important;
+}
+.rank-card-main:after{
+  content:"";
+  position:absolute;
+  right:-48px;top:-48px;
+  width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle,rgba(78,178,234,.17),transparent 70%);
+}
+.rank-badge{
+  border:2px solid rgba(255,255,255,.78)!important;
+  outline:1px solid rgba(117,158,184,.22);
+}
+.rank-progress{
+  background:#e2edf4!important;
+  overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(56,91,112,.09);
+}
+.rank-progress span{
+  background:linear-gradient(90deg,#56aee4,#73d4ff)!important;
+  box-shadow:0 0 14px rgba(67,177,235,.38);
+}
+
+.stat-card{
+  background:
+    linear-gradient(145deg,#ffffff 0%,#f3faff 100%)!important;
+  transition:transform .16s,border-color .16s,box-shadow .16s;
+}
+.stat-card:hover{transform:translateY(-2px);border-color:#9ed0ed!important;box-shadow:0 22px 45px rgba(48,103,140,.15)!important}
+
+.arena-card{
+  border-color:#a9d5ed!important;
+  box-shadow:0 28px 70px rgba(47,112,155,.19)!important;
+}
+.arena-card:before{opacity:.9}
+.mode-option,.map-option{
+  background:linear-gradient(180deg,#fff,#f5faff)!important;
+  border-color:#c7dfed!important;
+}
+.mode-option.active,.map-option.active{
+  background:linear-gradient(180deg,#f9fdff,#def3ff)!important;
+  border-color:#73bbe4!important;
+  box-shadow:0 10px 24px rgba(48,133,187,.17),inset 0 0 0 1px rgba(255,255,255,.9)!important;
+}
+.mode-option.active:before,.map-option.active:before{
+  content:"";
+  position:absolute;left:8px;right:8px;bottom:4px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,#3b9fd9,#7dd6ff);
+}
+.mode-option,.map-option{position:relative;overflow:hidden}
+.competitive-paper{
+  box-shadow:0 10px 0 rgba(74,86,99,.2),0 26px 42px rgba(51,98,129,.22)!important;
+}
+.ranked-play{
+  background:linear-gradient(180deg,#ffe972,#ffd43d)!important;
+  box-shadow:0 18px 34px rgba(182,132,0,.22),inset 0 1px 0 rgba(255,255,255,.7)!important;
+}
+.ranked-play:active{transform:translateY(2px)!important}
+
+.map-visual{
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.55);
+}
+.real-leaderboard-card:after{
+  content:"TOP JOUEURS";
+  position:absolute;right:10px;top:10px;
+  font-size:6px;font-weight:1000;letter-spacing:.09em;
+  color:#9ab0c1;
+}
+
+.game-bottom-nav{
+  border-color:#aecfe2!important;
+  background:rgba(249,253,255,.95)!important;
+  box-shadow:0 22px 55px rgba(40,87,119,.22),inset 0 1px 0 #fff!important;
+}
+.bottom-nav-item{
+  transition:transform .14s,background .14s,color .14s!important;
+}
+.bottom-nav-item:hover{transform:translateY(-2px)}
+.bottom-nav-item.active{
+  background:linear-gradient(180deg,#edf9ff,#dff3ff)!important;
+  box-shadow:inset 0 0 0 1px #b9ddee;
+}
+.bottom-nav-play{
+  background:linear-gradient(180deg,#ffea77,#ffd43f)!important;
+  box-shadow:0 10px 22px rgba(184,134,0,.22),inset 0 1px 0 rgba(255,255,255,.8)!important;
+}
+
+.hub-page{
+  background:
+    radial-gradient(circle at 50% -15%,rgba(102,204,255,.28),transparent 38%),
+    linear-gradient(180deg,#f6fcff,#eaf7ff 52%,#f7fcff)!important;
+}
+.hub-header{
+  border-bottom-color:#bedbe9!important;
+}
+.hub-header h1{
+  font-size:46px!important;
+  letter-spacing:-.055em!important;
+}
+.hub-header p{
+  font-size:12px!important;
+}
+.skin-showcase-card{
+  border-radius:20px!important;
+}
+.skin-showcase-card.selected{
+  border-color:#54ace0!important;
+  box-shadow:0 22px 54px rgba(49,123,170,.2)!important;
+}
+.skin-paper-stage{
+  background:radial-gradient(circle,rgba(186,229,251,.32),transparent 70%);
+  border-radius:15px;
+}
+.profile-banner-preview{
+  border-color:#a9d4eb!important;
+  box-shadow:0 22px 55px rgba(49,103,139,.14)!important;
+}
+.profile-big-stats>div{
+  transition:.16s;
+}
+.profile-big-stats>div:hover{transform:translateY(-2px);border-color:#9ccce8}
+.leaderboard-full-row{
+  transition:transform .14s,border-color .14s,box-shadow .14s;
+}
+.leaderboard-full-row:hover{
+  transform:translateX(3px);
+  border-color:#9dcee9!important;
+  box-shadow:0 9px 22px rgba(55,105,138,.09)
+}
+
+/* in-game visual cleanup */
+#gameCanvas{filter:saturate(1.04) contrast(1.015)}
+#leaderboard,.mode-hud,#hud,.game-brand-watermark{
+  border-color:rgba(173,208,229,.92)!important;
+  background:rgba(255,255,255,.9)!important;
+}
+#quitBtn{
+  border-radius:12px!important;
+  box-shadow:0 8px 22px rgba(43,77,98,.16)!important;
+}
+
+/* game-over screen feels like a result screen, not a generic popup */
+.gameover-card{
+  position:relative;
+  overflow:hidden;
+}
+.gameover-card:before{
+  content:"";
+  position:absolute;inset:0 0 auto;height:4px;
+  background:linear-gradient(90deg,#4ca8ff,#ffd84d,#ff596f)
+}
+.result-grid>div{
+  background:#f6fbff!important;
+  border:1px solid #c9e0ed!important;
+  border-radius:13px!important;
+}
+
+@media(max-height:760px) and (min-width:901px){
+  .home-quickbar{top:73px;height:34px}
+  .home-dashboard{padding-top:41px!important;height:calc(100dvh - 70px - 80px)!important}
+  .quickbar-tip{display:none}
+}
