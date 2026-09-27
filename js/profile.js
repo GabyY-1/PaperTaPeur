@@ -28,7 +28,9 @@
 
     { name: "Champion", tier: "III", min: 16000, color: "#ff5577" },
     { name: "Champion", tier: "II", min: 18000, color: "#ff5577" },
-    { name: "Champion", tier: "I", min: 20000, color: "#ff5577" }
+    { name: "Champion", tier: "I", min: 20000, color: "#ff5577" },
+
+    { name: "TaPeur", tier: "", min: 25000, color: "#ff2d55" }
   ];  const defaults = {
     id: "",
     name: "Player",
@@ -80,7 +82,7 @@
 
     return {
       ...rank,
-      fullName: rank.name + " " + rank.tier,
+      fullName: rank.tier ? rank.name + " " + rank.tier : rank.name,
       index,
       next,
       progress
