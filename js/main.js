@@ -607,7 +607,11 @@ function makeEntity(id, name, color, x, y, isBot) {
     desiredAngle: angle,
     preferredLoop: Math.round(
       12 + (1 - botDifficulty) * 18 + Math.random() * (20 - botDifficulty * 10)
-    )
+    ),
+    aggression: isBot ? 0.35 + Math.random() * 0.55 : 0,
+    caution: isBot ? 0.35 + Math.random() * 0.55 : 0,
+    expansionBias: isBot ? 0.35 + Math.random() * 0.55 : 0,
+    lastDecision: "expand"
   };
 }
 
@@ -923,45 +927,99 @@ function updateBot(bot, dt) {
   bot.aiTimer -= dt;
 
   if (bot.aiTimer <= 0) {
-    const reaction = 0.58 - botDifficulty * 0.38;
-    bot.aiTimer = reaction + Math.random() * (0.28 - botDifficulty * 0.12);
+    const reaction = 0.52 - botDifficulty * 0.29;
+    bot.aiTimer = Math.max(0.12, reaction + Math.random() * 0.2);
 
     const distanceFromCenter = Math.hypot(bot.x, bot.y);
     const edgeDistance = WORLD_RADIUS - distanceFromCenter;
+    const home = bot.outside ? nearestOwnedCell(bot) : null;
+    const homeDistance = home ? Math.hypot(home.x - bot.x, home.y - bot.y) : 0;
+    const threat = botTrailThreat(bot);
+    const trailTarget = findBestEnemyTrailTarget(bot);
 
-    if (edgeDistance < 145) {
-      bot.desiredAngle =
-        Math.atan2(-bot.y, -bot.x) + (Math.random() - 0.5) * 0.38;
-    } else if (bot.outside && bot.trail.length > bot.preferredLoop) {
-      const home = nearestOwnedCell(bot);
-      bot.desiredAngle =
-        Math.atan2(home.y - bot.y, home.x - bot.x) +
-        (Math.random() - 0.5) * 0.22;
-    } else {
-      const trailTarget = findNearbyEnemyTrail(bot);
+    const longTrail =
+      bot.outside &&
+      bot.trail.length >
+        bot.preferredLoop * (1.05 - botDifficulty * 0.18 + bot.caution * 0.12);
 
-      const huntChance = 0.24 + botDifficulty * 0.66;
-      if (trailTarget && Math.random() < huntChance) {
-        bot.desiredAngle = Math.atan2(
-          trailTarget.y - bot.y,
-          trailTarget.x - bot.x
-        );
-      } else {
-        bot.desiredAngle += (Math.random() - 0.5) * 0.95;
+    const farFromHome =
+      bot.outside &&
+      homeDistance >
+        280 + (1 - bot.caution) * 170 + botDifficulty * 70;
+
+    const underPressure =
+      threat &&
+      threat.distance <
+        240 + bot.caution * 160 + botDifficulty * 80;
+
+    if (edgeDistance < 155) {
+      // Never get trapped against the outside wall.
+      bot.lastDecision = "edge";
+      bot.desiredAngle =
+        Math.atan2(-bot.y, -bot.x) + (Math.random() - 0.5) * 0.22;
+    } else if (bot.outside && (longTrail || farFromHome || underPressure)) {
+      // Smarter bots know when a loop has become too dangerous.
+      bot.lastDecision = underPressure ? "escape" : "return";
+      let returnAngle = Math.atan2(home.y - bot.y, home.x - bot.x);
+
+      if (threat) {
+        const away = Math.atan2(bot.y - threat.y, bot.x - threat.x);
+        returnAngle = blendAngles(returnAngle, away, underPressure ? 0.28 : 0.12);
       }
 
-      if (!bot.outside && Math.random() < 0.3) {
-        const randomSpan = Math.max(8, 30 - botDifficulty * 18);
-        bot.preferredLoop = Math.round(
-          11 + (1 - botDifficulty) * 16 + Math.random() * randomSpan
+      bot.desiredAngle = chooseSafeBotAngle(bot, returnAngle, 0.55);
+    } else {
+      const huntRange = 300 + botDifficulty * 230 + bot.aggression * 120;
+      const shouldHunt =
+        trailTarget &&
+        trailTarget.distance < huntRange &&
+        Math.random() <
+          0.28 + botDifficulty * 0.48 + bot.aggression * 0.24;
+
+      if (shouldHunt) {
+        bot.lastDecision = "hunt";
+        const intercept = predictTrailIntercept(trailTarget.entity, trailTarget.point);
+        const attackAngle = Math.atan2(
+          intercept.y - bot.y,
+          intercept.x - bot.x
+        );
+        bot.desiredAngle = chooseSafeBotAngle(bot, attackAngle, 0.38);
+      } else if (!bot.outside) {
+        // On home territory, deliberately choose a promising expansion route
+        // instead of wandering randomly.
+        bot.lastDecision = "expand";
+        bot.desiredAngle = chooseExpansionAngle(bot);
+
+        if (Math.random() < 0.34) {
+          const base =
+            11 +
+            (1 - botDifficulty) * 12 +
+            (1 - bot.caution) * 8 +
+            bot.expansionBias * 10;
+          bot.preferredLoop = Math.round(base + Math.random() * 10);
+        }
+      } else {
+        // While drawing a loop, curve gradually so the route reconnects
+        // rather than becoming a straight suicidal line.
+        bot.lastDecision = "loop";
+        const homeAngle = Math.atan2(home.y - bot.y, home.x - bot.x);
+        const curve = Math.sin((bot.trail.length + bot.id * 3) * 0.22) * 0.45;
+        const forward = bot.angle + curve;
+        const towardHomeWeight = Math.min(
+          0.62,
+          0.12 + (bot.trail.length / Math.max(8, bot.preferredLoop)) * 0.45
+        );
+        bot.desiredAngle = chooseSafeBotAngle(
+          bot,
+          blendAngles(forward, homeAngle, towardHomeWeight),
+          0.45
         );
       }
     }
   }
 
   let delta = normalizeAngle(bot.desiredAngle - bot.angle);
-  const maxTurn = (1.45 + botDifficulty * 1.5) * dt;
-
+  const maxTurn = (1.65 + botDifficulty * 1.65) * dt;
   delta = Math.max(-maxTurn, Math.min(maxTurn, delta));
 
   bot.angle += delta;
@@ -1005,26 +1063,161 @@ function nearestOwnedCell(entity) {
 }
 
 function findNearbyEnemyTrail(bot) {
+  return findBestEnemyTrailTarget(bot)?.point || null;
+}
+
+function findBestEnemyTrailTarget(bot) {
   let best = null;
-  let bestDistance = 290 * 290;
+  let bestScore = Infinity;
 
   for (const entity of entities) {
-    if (!entity.alive || entity.id === bot.id || entity.trail.length < 2) {
-      continue;
-    }
+    if (!entity.alive || entity.id === bot.id || entity.trail.length < 2) continue;
 
-    for (let i = 0; i < entity.trail.length; i += 3) {
+    const victimValue =
+      1 -
+      Math.min(0.42, ((territoryCounts[entity.id] || 0) / Math.max(1, playableCells)) * 2.5);
+
+    for (let i = 0; i < entity.trail.length; i += 2) {
       const p = entity.trail[i];
-      const d = (p.x - bot.x) ** 2 + (p.y - bot.y) ** 2;
+      const distance = Math.hypot(p.x - bot.x, p.y - bot.y);
 
-      if (d < bestDistance) {
-        bestDistance = d;
-        best = p;
+      // Long exposed trails are more attractive because cutting them is more valuable.
+      const exposureBonus = Math.min(110, entity.trail.length * 3.2);
+      const score = distance * victimValue - exposureBonus;
+
+      if (score < bestScore) {
+        bestScore = score;
+        best = { point: p, entity, distance };
       }
     }
   }
 
   return best;
+}
+
+function botTrailThreat(bot) {
+  if (!bot.outside || bot.trail.length < 3) return null;
+
+  let best = null;
+  let bestDistance = Infinity;
+
+  for (const enemy of entities) {
+    if (!enemy.alive || enemy.id === bot.id || enemy.invuln > 0) continue;
+
+    for (let i = 0; i < bot.trail.length; i += 3) {
+      const p = bot.trail[i];
+      const distance = Math.hypot(enemy.x - p.x, enemy.y - p.y);
+
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = { x: enemy.x, y: enemy.y, distance, enemy };
+      }
+    }
+  }
+
+  return best;
+}
+
+function predictTrailIntercept(entity, point) {
+  const lead = Math.min(70, entity.speed * 0.28);
+  return {
+    x: point.x + entity.dirX * lead,
+    y: point.y + entity.dirY * lead
+  };
+}
+
+function blendAngles(a, b, weight) {
+  const delta = normalizeAngle(b - a);
+  return a + delta * Math.max(0, Math.min(1, weight));
+}
+
+function botDirectionSafety(bot, angle) {
+  let score = 0;
+
+  for (const distance of [70, 130, 200]) {
+    const x = bot.x + Math.cos(angle) * distance;
+    const y = bot.y + Math.sin(angle) * distance;
+
+    const worldDistance = Math.hypot(x, y);
+    if (worldDistance > WORLD_RADIUS - 55) score -= 8;
+
+    const owner = ownerAt(x, y);
+    if (owner === bot.id) score += bot.outside ? 2.6 : 0.5;
+    else if (owner >= 0 && owner !== bot.id) score += bot.aggression * 0.7;
+    else score += bot.expansionBias * 0.45;
+
+    if (bot.outside && bot.trail.length > 6) {
+      for (let i = 0; i < bot.trail.length - 4; i += 4) {
+        const p = bot.trail[i];
+        if (Math.hypot(x - p.x, y - p.y) < CELL * 1.1) {
+          score -= 6;
+          break;
+        }
+      }
+    }
+  }
+
+  for (const enemy of entities) {
+    if (!enemy.alive || enemy.id === bot.id) continue;
+    const projectedX = bot.x + Math.cos(angle) * 115;
+    const projectedY = bot.y + Math.sin(angle) * 115;
+    const distance = Math.hypot(enemy.x - projectedX, enemy.y - projectedY);
+
+    if (distance < 75) {
+      score -= bot.caution * 2.8;
+      if (enemy.outside && bot.aggression > 0.65) score += 1.4;
+    }
+  }
+
+  return score;
+}
+
+function chooseSafeBotAngle(bot, preferredAngle, spread = 0.5) {
+  let bestAngle = preferredAngle;
+  let bestScore = botDirectionSafety(bot, preferredAngle);
+
+  for (const offset of [-spread, -spread * 0.5, spread * 0.5, spread]) {
+    const angle = preferredAngle + offset;
+    const score = botDirectionSafety(bot, angle) - Math.abs(offset) * 0.18;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestAngle = angle;
+    }
+  }
+
+  return bestAngle;
+}
+
+function chooseExpansionAngle(bot) {
+  let bestAngle = bot.angle;
+  let bestScore = -Infinity;
+
+  const samples = 9;
+  for (let i = 0; i < samples; i++) {
+    const offset = ((i / (samples - 1)) - 0.5) * Math.PI * 1.55;
+    const angle = bot.angle + offset;
+    let score = botDirectionSafety(bot, angle);
+
+    for (const distance of [90, 160, 230]) {
+      const x = bot.x + Math.cos(angle) * distance;
+      const y = bot.y + Math.sin(angle) * distance;
+      const owner = ownerAt(x, y);
+
+      if (owner === -1) score += 1.2 + bot.expansionBias;
+      else if (owner >= 0 && owner !== bot.id) score += 0.65 + bot.aggression * 0.65;
+      else if (owner === bot.id) score -= 0.4;
+    }
+
+    score -= Math.abs(offset) * 0.12;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestAngle = angle;
+    }
+  }
+
+  return bestAngle + (Math.random() - 0.5) * (0.16 - botDifficulty * 0.08);
 }
 
 function moveEntity(entity, dt) {
