@@ -12,7 +12,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="./css/style.css?v=20260926-multinavfix1">
+  <link rel="stylesheet" href="./css/style.css?v=20260927-megav4">
 </head>
 <body>
 <main id="app">
@@ -46,9 +46,21 @@
           <small id="platformLabel">NAVIGATEUR</small>
           <strong>CLASSÉ</strong>
         </div>
+        <div class="header-status-pill"><i></i><span>EN LIGNE</span></div>
         <button id="installAppBtn" class="install-app-btn">INSTALLER</button>
       </div>
     </header>
+
+    <div class="home-quickbar">
+      <div><small>RANG</small><strong id="quickRank">Bronze III</strong></div>
+      <i></i>
+      <div><small>RP</small><strong id="quickRP">0</strong></div>
+      <i></i>
+      <div><small>NIVEAU</small><strong id="quickLevel">1</strong></div>
+      <i></i>
+      <div><small>RECORD</small><strong id="quickBest">0.0%</strong></div>
+      <span class="quickbar-tip">Ferme tes boucles. Coupe les traces. Prends la carte.</span>
+    </div>
 
     <div class="competitive-layout home-dashboard">
       <section class="left-column">
@@ -702,7 +714,7 @@
 </main>
 
 <script src="js/profile.js?v=20260927-tapeur1"></script>
-<script src="js/main.js?v=20260927-tapeur1"></script>
+<script src="js/main.js?v=20260927-megav4"></script>
 <script>
 (() => {
   const supabaseScript = document.createElement("script");
