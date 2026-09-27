@@ -80,6 +80,8 @@ const playModeTitle = document.getElementById("playModeTitle");
 const playModeSubtitle = document.getElementById("playModeSubtitle");
 const modeHudName = document.getElementById("modeHudName");
 const modeHudDetail = document.getElementById("modeHudDetail");
+const boostHud = document.getElementById("boostHud");
+const boostHudTime = document.getElementById("boostHudTime");
 const menuGames = document.getElementById("menuGames");
 const mapSelector = document.getElementById("mapSelector");
 const mapName = document.getElementById("mapName");
@@ -219,6 +221,7 @@ let entities = [];
 let player = null;
 let coins = [];
 let particles = [];
+let boostOrbs = [];
 
 let territoryCounts = [];
 let currentEarned = 0;
@@ -594,6 +597,7 @@ function makeEntity(id, name, color, x, y, isBot) {
     speed: isBot
       ? 158 + botDifficulty * 48 + Math.random() * (16 - botDifficulty * 6)
       : PLAYER_SPEED,
+    boostTimer: 0,
     isBot,
     isRemote: false,
     clientId: null,
@@ -707,6 +711,7 @@ function resetGame() {
   entities = [];
   particles = [];
   coins = [];
+  boostOrbs = [];
 
   kills = 0;
   currentEarned = 0;
@@ -748,6 +753,9 @@ function resetGame() {
   rebuildTerritoryCounts();
 
   coins = [];
+  if (!multiplayer.matchActive) {
+    for (let i = 0; i < 4; i++) boostOrbs.push(spawnBoostOrb());
+  }
 
   camera.x = player.x;
   camera.y = player.y;
@@ -760,6 +768,94 @@ function resetGame() {
   last = performance.now();
 
   updateHud(true);
+}
+
+
+function spawnBoostOrb() {
+  const a = Math.random() * TAU;
+  const r = Math.sqrt(Math.random()) * (WORLD_RADIUS - 150);
+  return {
+    x: Math.cos(a) * r,
+    y: Math.sin(a) * r,
+    pulse: Math.random() * TAU,
+    active: true,
+    respawn: 0
+  };
+}
+
+function updateBoostOrbs(dt) {
+  if (multiplayer.matchActive) return;
+
+  for (const orb of boostOrbs) {
+    orb.pulse += dt * 3.2;
+
+    if (!orb.active) {
+      orb.respawn -= dt;
+      if (orb.respawn <= 0) {
+        const fresh = spawnBoostOrb();
+        orb.x = fresh.x;
+        orb.y = fresh.y;
+        orb.pulse = fresh.pulse;
+        orb.active = true;
+      }
+      continue;
+    }
+
+    for (const entity of entities) {
+      if (!entity.alive) continue;
+      if (Math.hypot(entity.x - orb.x, entity.y - orb.y) < entity.radius + 18) {
+        entity.boostTimer = Math.max(entity.boostTimer, 3.5);
+        orb.active = false;
+        orb.respawn = 10 + Math.random() * 5;
+
+        burst(orb.x, orb.y, "#59c9ff", 16);
+        if (entity === player) {
+          toast("TURBO ! +20% vitesse pendant 3.5s");
+          tone(1080, 0.08, "triangle", 0.018);
+        }
+        break;
+      }
+    }
+  }
+}
+
+function drawBoostOrbs() {
+  if (multiplayer.matchActive) return;
+
+  for (const orb of boostOrbs) {
+    if (!orb.active) continue;
+    const p = toScreen(orb.x, orb.y);
+    if (p.x < -35 || p.y < -35 || p.x > W + 35 || p.y > H + 35) continue;
+
+    const pulse = 1 + Math.sin(orb.pulse) * 0.12;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.scale(pulse, pulse);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 15 * camera.zoom, 0, TAU);
+    ctx.fillStyle = "#dff7ff";
+    ctx.shadowColor = "#4fc8ff";
+    ctx.shadowBlur = 18;
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(0, 0, 9 * camera.zoom, 0, TAU);
+    ctx.fillStyle = "#59c9ff";
+    ctx.fill();
+
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-2 * camera.zoom, -6 * camera.zoom);
+    ctx.lineTo(3 * camera.zoom, -1 * camera.zoom);
+    ctx.lineTo(0, 0);
+    ctx.lineTo(4 * camera.zoom, 5 * camera.zoom);
+    ctx.stroke();
+
+    ctx.restore();
+  }
 }
 
 function spawnCoin() {
@@ -812,6 +908,7 @@ function update(dt) {
     }
 
     if (entity.invuln > 0) entity.invuln -= dt;
+    if (entity.boostTimer > 0) entity.boostTimer = Math.max(0, entity.boostTimer - dt);
 
     if (entity.isRemote) continue;
     if (entity.isBot) updateBot(entity, dt);
@@ -821,6 +918,7 @@ function update(dt) {
 
   resolveTrailCuts();
   resolveBodyCollisions();
+  updateBoostOrbs(dt);
   updateParticles(dt);
 
   camera.x += (player.x - camera.x) * Math.min(1, dt * 6);
@@ -1028,8 +1126,9 @@ function findNearbyEnemyTrail(bot) {
 }
 
 function moveEntity(entity, dt) {
-  entity.x += entity.dirX * entity.speed * dt;
-  entity.y += entity.dirY * entity.speed * dt;
+  const boostMultiplier = entity.boostTimer > 0 ? 1.2 : 1;
+  entity.x += entity.dirX * entity.speed * boostMultiplier * dt;
+  entity.y += entity.dirY * entity.speed * boostMultiplier * dt;
 
   const distance = Math.hypot(entity.x, entity.y);
   const maxDistance = WORLD_RADIUS - entity.radius - 8;
@@ -1488,6 +1587,9 @@ function updateHud(updateLeaderboard) {
   if (gameProgressFill) gameProgressFill.style.width = Math.max(0, Math.min(100, playerPercent)) + "%";
   if (gameProgressLabel) gameProgressLabel.textContent = Math.floor(playerPercent) + "%";
 
+  if (boostHud) boostHud.classList.toggle("active", Boolean(player?.boostTimer > 0));
+  if (boostHudTime) boostHudTime.textContent = player?.boostTimer > 0 ? player.boostTimer.toFixed(1) + "s" : "0.0s";
+
   if (modeHudName) modeHudName.textContent = GAME_MODES[selectedMode].name;
   if (modeHudDetail) {
     if (matchTimeLeft !== null) {
@@ -1574,6 +1676,7 @@ function draw() {
 
   drawGroundPattern();
   drawOwnedCells();
+  drawBoostOrbs();
   drawCoins();
   drawTrails();
   drawEntities();
@@ -1733,6 +1836,17 @@ function drawEntities() {
 
     if (entity.invuln > 0 && Math.floor(entity.invuln * 14) % 2 === 0) {
       ctx.globalAlpha = 0.35;
+    }
+
+    if (entity.boostTimer > 0) {
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 1.55, 0, TAU);
+      ctx.strokeStyle = "rgba(89,201,255,.75)";
+      ctx.lineWidth = Math.max(2, 3 * camera.zoom);
+      ctx.shadowColor = "#59c9ff";
+      ctx.shadowBlur = 14;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
     ctx.fillStyle = entity.color;
