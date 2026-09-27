@@ -44,6 +44,26 @@ const finalKillsEl = document.getElementById("finalKills");
 const earnedCoinsEl = document.getElementById("earnedCoins");
 const leaderboardList = document.getElementById("leaderboardList");
 const dangerText = document.getElementById("dangerText");
+const matchIntro = document.getElementById("matchIntro");
+const matchIntroMap = document.getElementById("matchIntroMap");
+const matchIntroMode = document.getElementById("matchIntroMode");
+const comboHud = document.getElementById("comboHud");
+const comboValue = document.getElementById("comboValue");
+const comboReason = document.getElementById("comboReason");
+const comboBar = document.getElementById("comboBar");
+const objectivesHud = document.getElementById("objectivesHud");
+const objectiveCount = document.getElementById("objectiveCount");
+const riskHud = document.getElementById("riskHud");
+const riskBar = document.getElementById("riskBar");
+const riskLabel = document.getElementById("riskLabel");
+const milestoneBanner = document.getElementById("milestoneBanner");
+const milestoneText = document.getElementById("milestoneText");
+const impactFlash = document.getElementById("impactFlash");
+const performanceGrade = document.getElementById("performanceGrade");
+const performanceTitle = document.getElementById("performanceTitle");
+const finalBestCombo = document.getElementById("finalBestCombo");
+const finalObjectives = document.getElementById("finalObjectives");
+const finalReward = document.getElementById("finalReward");
 const toastEl = document.getElementById("toast");
 const accountNameEl = document.getElementById("accountName");
 const avatarMini = document.getElementById("avatarMini");
@@ -227,6 +247,16 @@ let playerPercent = 0;
 let toastTimer = 0;
 let leaderboardTimer = 0;
 let matchTimeLeft = null;
+let comboLevel = 1;
+let comboTimer = 0;
+let bestCombo = 1;
+let objectiveReward = 0;
+let completedObjectives = new Set();
+let milestoneSeen = new Set();
+let shakeTime = 0;
+let shakePower = 0;
+let renderShakeX = 0;
+let renderShakeY = 0;
 
 const GAME_MODES = {
   ranked: {
@@ -713,6 +743,16 @@ function resetGame() {
   playerPercent = 0;
   toastTimer = 0;
   leaderboardTimer = 0;
+  comboLevel = 1;
+  comboTimer = 0;
+  bestCombo = 1;
+  objectiveReward = 0;
+  completedObjectives = new Set();
+  milestoneSeen = new Set();
+  shakeTime = 0;
+  shakePower = 0;
+  renderShakeX = 0;
+  renderShakeY = 0;
 
   const name = (nameInput.value.trim() || profile.name || "Player").slice(0, 14);
   profile.name = name;
@@ -776,6 +816,11 @@ function spawnCoin() {
 function startGame() {
   resetGame();
   show(game);
+  if (matchIntroMap) matchIntroMap.textContent = MAPS[selectedMap].name.toUpperCase();
+  if (matchIntroMode) matchIntroMode.textContent = GAME_MODES[selectedMode].name;
+  matchIntro?.classList.remove("show");
+  requestAnimationFrame(() => matchIntro?.classList.add("show"));
+  setTimeout(() => matchIntro?.classList.remove("show"), 1900);
   tone(530, 0.07, "square", 0.02);
   requestAnimationFrame(loop);
 }
@@ -822,6 +867,17 @@ function update(dt) {
   resolveTrailCuts();
   resolveBodyCollisions();
   updateParticles(dt);
+  updateWorldclassSystems(dt);
+
+  if (shakeTime > 0) {
+    shakeTime = Math.max(0, shakeTime - dt);
+    renderShakeX = (Math.random() - 0.5) * shakePower;
+    renderShakeY = (Math.random() - 0.5) * shakePower;
+    shakePower *= 0.92;
+  } else {
+    renderShakeX = 0;
+    renderShakeY = 0;
+  }
 
   camera.x += (player.x - camera.x) * Math.min(1, dt * 6);
   camera.y += (player.y - camera.y) * Math.min(1, dt * 6);
@@ -1202,6 +1258,11 @@ function captureTerritory(entity) {
         toast("+" + pct.toFixed(1) + "% territoire");
       }
 
+      if (pct >= 0.5) {
+        addMomentum("CAPTURE", pct >= 3 ? 1 : 0.5);
+      }
+      if (pct >= 3) triggerImpact(5, false);
+
       tone(690, 0.08, "triangle", 0.03);
 
       if (multiplayer.matchActive && changedCells.length) {
@@ -1305,6 +1366,9 @@ function killEntity(victim, killer, fromNetwork = false) {
         : "Élimination +3 pièces"
     );
 
+    addMomentum("ÉLIMINATION", 1.25);
+    currentEarned += Math.max(0, comboLevel - 1);
+    triggerImpact(11, true);
     tone(250, 0.12, "square", 0.03);
   }
 
@@ -1423,6 +1487,100 @@ function toast(text) {
   toastTimer = 1.35;
 }
 
+
+function addMomentum(reason, amount = 1) {
+  comboLevel = Math.min(5, Math.max(1, comboLevel + amount));
+  comboLevel = Math.round(comboLevel * 2) / 2;
+  comboTimer = 7;
+  bestCombo = Math.max(bestCombo, comboLevel);
+  if (comboReason) comboReason.textContent = reason;
+  updateComboHud();
+}
+
+function updateComboHud() {
+  if (!comboHud) return;
+  comboHud.classList.toggle("active", comboLevel > 1);
+  if (comboValue) comboValue.textContent = "x" + comboLevel;
+  if (comboBar) comboBar.style.width = Math.max(0, Math.min(100, (comboTimer / 7) * 100)) + "%";
+}
+
+function completeObjective(id, reward) {
+  if (completedObjectives.has(id)) return;
+  completedObjectives.add(id);
+  objectiveReward += reward;
+  const row = objectivesHud?.querySelector('[data-objective="' + id + '"]');
+  row?.classList.add("done");
+  if (objectiveCount) objectiveCount.textContent = completedObjectives.size + "/3";
+  toast("Objectif réussi +" + reward + " pièces");
+  tone(820, 0.12, "triangle", 0.025);
+}
+
+function updateObjectives() {
+  if (playerPercent >= 10) completeObjective("territory10", 5);
+  if (kills >= 2) completeObjective("kills2", 8);
+  if (playerPercent >= 30) completeObjective("territory30", 12);
+}
+
+function updateRiskHud() {
+  if (!player || !riskHud) return;
+  const trailLength = player.trail?.length || 0;
+  const risk = player.outside ? Math.min(100, trailLength * 2.2) : 0;
+  riskHud.classList.toggle("active", player.outside);
+  if (riskBar) riskBar.style.width = risk + "%";
+  if (riskLabel) {
+    riskLabel.textContent = risk < 35 ? "SÛR" : risk < 70 ? "RISQUÉ" : "DANGER";
+    riskHud.dataset.risk = risk < 35 ? "safe" : risk < 70 ? "medium" : "high";
+  }
+}
+
+function checkMilestones() {
+  for (const value of [10,25,50,75]) {
+    if (playerPercent >= value && !milestoneSeen.has(value)) {
+      milestoneSeen.add(value);
+      if (milestoneText) milestoneText.textContent = value + "% DU TERRITOIRE";
+      milestoneBanner?.classList.add("show");
+      setTimeout(() => milestoneBanner?.classList.remove("show"), 1400);
+      triggerImpact(value >= 50 ? 8 : 4, false);
+      tone(560 + value * 4, 0.12, "triangle", 0.02);
+    }
+  }
+}
+
+function triggerImpact(power = 6, flash = false) {
+  shakeTime = Math.max(shakeTime, 0.18);
+  shakePower = Math.max(shakePower, power);
+  if (flash && impactFlash) {
+    impactFlash.classList.remove("show");
+    void impactFlash.offsetWidth;
+    impactFlash.classList.add("show");
+  }
+}
+
+function updateWorldclassSystems(dt) {
+  if (comboTimer > 0) {
+    comboTimer = Math.max(0, comboTimer - dt);
+    if (comboTimer === 0 && comboLevel > 1) {
+      comboLevel = 1;
+      if (comboReason) comboReason.textContent = "PRÊT";
+    }
+  }
+  updateComboHud();
+  updateObjectives();
+  updateRiskHud();
+  checkMilestones();
+}
+
+function updatePerformanceGrade() {
+  const score = playerPercent + kills * 6 + completedObjectives.size * 8 + bestCombo * 3;
+  let grade = "C";
+  let title = "COMBATTANT";
+  if (score >= 90) { grade = "S"; title = "DOMINATION TOTALE"; }
+  else if (score >= 65) { grade = "A"; title = "EXCELLENTE PARTIE"; }
+  else if (score >= 42) { grade = "B"; title = "TRÈS BON MATCH"; }
+  if (performanceGrade) performanceGrade.textContent = grade;
+  if (performanceTitle) performanceTitle.textContent = title;
+}
+
 function endGame() {
   if (!running) return;
 
@@ -1430,7 +1588,7 @@ function endGame() {
   multiplayer.matchActive = false;
   dangerText.classList.remove("show");
 
-  const earned = currentEarned + Math.floor(playerPercent * 0.6);
+  const earned = currentEarned + objectiveReward + Math.floor(playerPercent * 0.6);
 
   totalCoins += earned;
   bestScore = Math.max(bestScore, playerPercent);
@@ -1459,6 +1617,10 @@ function endGame() {
   finalScoreEl.textContent = playerPercent.toFixed(1) + "%";
   finalKillsEl.textContent = kills;
   earnedCoinsEl.textContent = earned;
+  if (finalBestCombo) finalBestCombo.textContent = "x" + bestCombo;
+  if (finalObjectives) finalObjectives.textContent = completedObjectives.size + "/3";
+  if (finalReward) finalReward.textContent = earned + " pièces";
+  updatePerformanceGrade();
 
   updateMenuStats();
 
@@ -1547,8 +1709,8 @@ function escapeHtml(value) {
 
 function toScreen(x, y) {
   return {
-    x: (x - camera.x) * camera.zoom + W / 2,
-    y: (y - camera.y) * camera.zoom + H / 2
+    x: (x - camera.x) * camera.zoom + W / 2 + renderShakeX,
+    y: (y - camera.y) * camera.zoom + H / 2 + renderShakeY
   };
 }
 
