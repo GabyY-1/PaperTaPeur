@@ -2242,7 +2242,7 @@ function openRewardsPanel() {
 function openRankPanel() {
   const currentRank = window.PTPProfile.getRank(profile.rankPoints);
 
-  const groups = ["Bronze","Argent","Or","Platine","Diamant","Maître","Champion"].map((name) => {
+  const groups = ["Bronze","Argent","Or","Platine","Diamant","Maître","Champion","TaPeur"].map((name) => {
     const divisions = window.PTPProfile.RANKS.filter((rank) => rank.name === name);
     const active = divisions.some((rank) => rank.name === currentRank.name && rank.tier === currentRank.tier);
     const color = divisions[0]?.color || "#8ba3b7";
@@ -2253,11 +2253,11 @@ function openRankPanel() {
           <span class="rank-dot" style="background:${color}">${active ? currentRank.tier : divisions[0].tier}</span>
           <strong>${name}</strong>
         </div>
-        <div class="rank-divisions">
+        <div class="rank-divisions ${name === "TaPeur" ? "final-rank-division" : ""}">
           ${divisions.map((rank) => {
             const current = rank.name === currentRank.name && rank.tier === currentRank.tier;
             return `<div class="rank-division ${current ? "active" : ""}">
-              <b>${rank.tier}</b><span>${rank.min} RP</span>
+              <b>${rank.tier || "MAX"}</b><span>${rank.min} RP</span>
             </div>`;
           }).join("")}
         </div>
